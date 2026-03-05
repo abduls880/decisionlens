@@ -572,17 +572,15 @@ async function runAnalysis(){
 
   const gs=fg.length?fg.map(g=>`- ${g.name}: تأثير ${L.impact[g.impact]||'غير محدد'}`).join('\n'):'لم تُحدد فئات';
 
-  const prompt=`أنت خبير OB وHRM. حلل السلوك المتوقع وأرجع JSON صالح فقط يبدأ بـ { وينتهي بـ }.
+  const prompt=`خبير OB. أرجع JSON فقط بدون أي نص آخر.
 
-بيانات: قطاع ${L.sector[org?.sector]}, حجم ${L.orgSize[org?.orgSize]}, عمر ${L.orgAge[org?.orgAge]}, تغيير ${L.changeAccept[org?.changeAccept]}, استقلالية ${L.autonomy[org?.autonomy]}, أسلوب ${L.lstyle[ldr?.lstyle]}, مرؤوسون ${L.reports[ldr?.reports]}, ثقة ${L.trust[ldr?.trust]}, خبرة ${L.seniority[ldr?.seniority]}
+بيانات: ${L.sector[org?.sector]},${L.orgSize[org?.orgSize]},${L.orgAge[org?.orgAge]},${L.changeAccept[org?.changeAccept]},${L.autonomy[org?.autonomy]},${L.lstyle[ldr?.lstyle]},${L.reports[ldr?.reports]},${L.trust[ldr?.trust]},${L.seniority[ldr?.seniority]}
 القرار: ${dec}
-تعديل:${L.flex[flex]}, توقيت:${L.timing[timing]}, وعي:${L.awareness[awareness]}, فئات:${gs}
+${L.flex[flex]},${L.timing[timing]},${L.awareness[awareness]},${gs}
 
-النظريات المتاحة: Kotter 8-Step, Kübler-Ross, Lewin, Structural Inertia, Organizational Imprinting, Maslow, Herzberg, Vroom, Intrinsic vs Extrinsic, Organizational Justice, Social Exchange, Psychological Contract Breach, French & Raven, Situational Leadership, Social Hierarchy, Competing Values, Dynamic Capabilities, Team Diversity, OCB
+نظريات (اختر 3): Kotter,Kübler-Ross,Lewin,Structural Inertia,Maslow,Herzberg,Vroom,Org Justice,Social Exchange,Psych Contract,French&Raven,Situational Leadership,Competing Values,Dynamic Capabilities,OCB
 
-اختر 3-4 نظريات مناسبة فقط. أضف نظرية إضافية إن لزم. اكتب نقاطاً قصيرة لا تتجاوز 10 كلمات لكل نقطة.
-
-{"summary":"جملة واحدة فقط","theories":[{"name":"اسم","group":"مجموعة 1","relevance":"high","insight":"جملة قصيرة"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة1","نقطة2"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2"]},{"id":"groups","icon":"👥","title":"سلوك الفئات","color":"#2ecc8a","points":["نقطة1","نقطة2"]},{"id":"timeline","icon":"📅","title":"تطور السلوك","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"questions":["سؤال1","سؤال2","سؤال3"]}`;
+{"summary":"جملة","theories":[{"name":"نظرية","group":"1","relevance":"high","insight":"تطبيق"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود فورية","color":"#4f7fff","points":["أ","ب"]},{"id":"informal","icon":"💬","title":"تواصل غير رسمي","color":"#7b5ea7","points":["أ","ب"]},{"id":"compliance","icon":"🔄","title":"امتثال","color":"#e8a838","points":["أ","ب"]},{"id":"resistance","icon":"🌊","title":"مقاومة","color":"#e85454","points":["أ","ب"]},{"id":"groups","icon":"👥","title":"الفئات","color":"#2ecc8a","points":["أ","ب"]},{"id":"timeline","icon":"📅","title":"مراحل","color":"#4fc3f7","points":["مرحلة1","مرحلة2","مرحلة3"]}],"risks":[{"label":"مقاومة","level":60},{"label":"شائعات","level":50},{"label":"إنتاجية","level":40},{"label":"ثقة","level":55}],"questions":["س1","س2","س3"]}`;
 
   try{
     const res=await fetch("https://decisionlens-api.a-aloraini88.workers.dev",{
