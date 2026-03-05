@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DecisionLens</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d14;--surface:#111520;--surface2:#171c2e;--border:#1e2540;--border2:#252d45;--accent:#4f7fff;--accent2:#7b5ea7;--gold:#e8a838;--green:#2ecc8a;--red:#e85454;--text:#e8eaf2;--text2:#8b92b0;--text3:#4a5270;--shadow:rgba(0,0,0,0.5);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-30%;right:-20%;width:600px;height:600px;background:radial-gradient(circle,rgba(79,127,255,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-20%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(123,94,167,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:rgba(10,13,20,0.92);backdrop-filter:blur(12px);}
+.logo{font-family:'Tajawal',sans-serif;font-size:1.25rem;font-weight:900;display:flex;align-items:center;gap:0.5rem;}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);}
+.logo span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:0.8rem;}
+.org-badge{display:none;align-items:center;gap:0.5rem;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:0.35rem 0.85rem;font-size:0.8rem;color:var(--text2);}
+.org-badge.show{display:flex;}
+.org-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.logout-btn{display:none;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:0.35rem 0.85rem;border-radius:8px;font-family:inherit;font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+.logout-btn.show{display:block;}
+.lang-toggle{display:flex;gap:0.3rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.lang-btn{padding:0.3rem 0.75rem;border-radius:5px;border:none;background:transparent;color:var(--text2);font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.lang-btn.active{background:var(--accent);color:white;}
+/* Login */
+.login-wrap{min-height:calc(100vh - 65px);display:flex;align-items:center;justify-content:center;padding:2rem;position:relative;z-index:1;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:420px;text-align:center;}
+.login-icon{font-size:2.5rem;margin-bottom:1.2rem;}
+.login-title{font-family:'Tajawal',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:0.5rem;}
+.login-sub{font-size:0.88rem;color:var(--text2);line-height:1.6;margin-bottom:2rem;}
+.code-input{width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:1rem 1.2rem;font-family:inherit;font-size:1.1rem;font-weight:700;color:var(--text);outline:none;text-align:center;letter-spacing:0.15em;transition:all 0.2s;margin-bottom:1rem;}
+.code-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,127,255,0.12);}
+.code-input::placeholder{font-size:0.9rem;font-weight:400;letter-spacing:0.05em;color:var(--text3);}
+.login-error{background:rgba(232,84,84,0.1);border:1px solid rgba(232,84,84,0.25);color:var(--red);padding:0.7rem 1rem;border-radius:8px;font-size:0.85rem;margin-bottom:1rem;display:none;}
+.login-hint{font-size:0.75rem;color:var(--text3);margin-top:1.2rem;line-height:1.8;}
+.login-hint code{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.78rem;color:var(--gold);}
+/* App */
+.app{max-width:860px;margin:0 auto;padding:2rem 1.5rem 5rem;position:relative;z-index:1;}
+/* Progress */
+.progress-track{display:flex;align-items:center;margin-bottom:2.5rem;position:relative;}
+.progress-track::before{content:'';position:absolute;top:14px;right:14px;left:14px;height:1px;background:var(--border);z-index:0;}
+.prog-step{display:flex;flex-direction:column;align-items:center;gap:0.5rem;flex:1;position:relative;z-index:1;opacity:0.3;transition:opacity 0.3s;}
+.prog-step.active{opacity:1;}.prog-step.done{opacity:0.65;}
+.prog-dot{width:28px;height:28px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--text3);transition:all 0.3s;}
+.prog-step.active .prog-dot{background:var(--accent);border-color:var(--accent);color:white;box-shadow:0 0 16px rgba(79,127,255,0.4);}
+.prog-step.done .prog-dot{background:var(--green);border-color:var(--green);color:white;}
+.prog-label{font-size:0.65rem;font-weight:600;color:var(--text3);white-space:nowrap;}
+.prog-step.active .prog-label{color:var(--accent);}.prog-step.done .prog-label{color:var(--green);}
+/* Panels */
+.panel{display:none;animation:panelIn 0.4s ease;}.panel.active{display:block;}
+@keyframes panelIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.panel-header{margin-bottom:2rem;}
+.panel-tag{font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.4rem;}
+.panel-tag::before{content:'';width:20px;height:1.5px;background:var(--accent);}
+.panel-title{font-family:'Tajawal',sans-serif;font-size:1.6rem;font-weight:800;color:var(--text);line-height:1.25;margin-bottom:0.5rem;}
+.panel-desc{font-size:0.88rem;color:var(--text2);line-height:1.7;}
+/* Form */
+.form-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1rem;}
+.fsec-title{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1.2rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.field{margin-bottom:1.2rem;}.field:last-child{margin-bottom:0;}
+.field-label{font-size:0.85rem;font-weight:600;color:var(--text2);margin-bottom:0.6rem;display:block;}
+.radio-group{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.radio-opt{flex:1;min-width:fit-content;}.radio-opt input{display:none;}
+.radio-opt label{display:block;padding:0.6rem 1rem;border:1.5px solid var(--border2);border-radius:8px;font-size:0.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.2s;text-align:center;white-space:nowrap;}
+.radio-opt input:checked+label{border-color:var(--accent);background:rgba(79,127,255,0.1);color:var(--accent);}
+.radio-opt label:hover{color:var(--text);background:var(--surface2);}
+textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:10px;padding:0.9rem 1rem;font-family:inherit;font-size:0.92rem;color:var(--text);outline:none;resize:vertical;line-height:1.7;transition:all 0.2s;min-height:90px;}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,127,255,0.12);}
+textarea::placeholder{color:var(--text3);}
+/* Saved bar */
+.saved-bar{background:rgba(46,204,138,0.07);border:1px solid rgba(46,204,138,0.2);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1rem;display:none;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.saved-bar.show{display:flex;}
+.saved-bar-text{font-size:0.83rem;color:var(--green);display:flex;align-items:center;gap:0.5rem;}
+.edit-btn{background:transparent;border:1px solid rgba(46,204,138,0.3);color:var(--green);padding:0.3rem 0.8rem;border-radius:6px;font-family:inherit;font-size:0.75rem;cursor:pointer;transition:all 0.2s;}
+.edit-btn:hover{background:rgba(46,204,138,0.1);}
+/* Groups */
+.groups-builder{display:flex;flex-direction:column;gap:0.7rem;}
+.group-row{display:grid;grid-template-columns:1fr auto;gap:0.6rem;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;}
+.group-input{background:transparent;border:none;font-family:inherit;font-size:0.88rem;color:var(--text);outline:none;width:100%;}
+.group-input::placeholder{color:var(--text3);}
+.impact-sel{display:flex;gap:0.3rem;}
+.ibtn{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border2);background:transparent;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.15s;color:var(--text3);}
+.ibtn.low.sel{background:rgba(46,204,138,0.15);border-color:var(--green);color:var(--green);}
+.ibtn.med.sel{background:rgba(232,168,56,0.15);border-color:var(--gold);color:var(--gold);}
+.ibtn.high.sel{background:rgba(232,84,84,0.15);border-color:var(--red);color:var(--red);}
+.rm-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:0.9rem;padding:0.2rem;transition:color 0.2s;}
+.rm-btn:hover{color:var(--red);}
+.add-group-btn{background:transparent;border:1.5px dashed var(--border2);border-radius:10px;padding:0.6rem;color:var(--text3);font-family:inherit;font-size:0.82rem;cursor:pointer;transition:all 0.2s;width:100%;display:flex;align-items:center;justify-content:center;gap:0.4rem;margin-top:0.6rem;}
+.add-group-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Buttons */
+.btn-row{display:flex;gap:0.8rem;align-items:center;margin-top:1.5rem;flex-wrap:wrap;}
+.btn-main{background:var(--accent);color:white;border:none;padding:0.8rem 2rem;border-radius:10px;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:0.5rem;}
+.btn-main:hover{background:#3d6ce8;transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,127,255,0.3);}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2);padding:0.75rem 1.5rem;border-radius:10px;font-family:inherit;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-ghost:hover{border-color:var(--text2);color:var(--text);}
+/* Loading */
+.loading-view{display:none;flex-direction:column;align-items:center;gap:1.5rem;padding:4rem 2rem;text-align:center;}
+.loading-view.show{display:flex;}
+.loader-ring{width:56px;height:56px;border:3px solid var(--border2);border-top-color:var(--accent);border-right-color:var(--accent2);border-radius:50%;animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Results */
+.results-view{display:none;}.results-view.show{display:block;}
+.results-topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:wrap;gap:1rem;}
+.results-heading{font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:0.4rem;}
+.dec-chip{display:inline-flex;align-items:center;gap:0.4rem;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:0.35rem 0.8rem;font-size:0.82rem;color:var(--text2);}
+.summary-card{background:linear-gradient(135deg,rgba(79,127,255,0.1),rgba(123,94,167,0.1));border:1px solid rgba(79,127,255,0.25);border-radius:14px;padding:1.5rem 1.8rem;margin-bottom:1.2rem;position:relative;overflow:hidden;}
+.summary-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;background:radial-gradient(circle,rgba(79,127,255,0.15),transparent 70%);}
+.sum-label{font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;}
+.sum-text{font-size:0.95rem;line-height:1.8;color:var(--text);}
+.behavior-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin-bottom:1.2rem;}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.3rem;position:relative;overflow:hidden;transition:border-color 0.2s;}
+.bcard:hover{border-color:var(--border2);box-shadow:0 4px 20px var(--shadow);}
+.bcard-stripe{position:absolute;bottom:0;left:0;right:0;height:3px;}
+.bcard-icon{font-size:1.3rem;margin-bottom:0.6rem;}
+.bcard-title{font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;}
+.bcard-content{font-size:0.87rem;line-height:1.7;color:var(--text2);}
+.bcard-content ul{padding-right:1.1rem;margin-top:0.3rem;}
+.bcard-content li{margin-bottom:0.35rem;font-size:0.84rem;}
+.risk-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1.2rem;}
+.risk-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;}
+.risk-row{display:flex;align-items:center;gap:0.8rem;margin-bottom:0.7rem;}
+.risk-lbl{font-size:0.83rem;color:var(--text2);width:140px;flex-shrink:0;}
+.risk-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.risk-fill{height:100%;border-radius:3px;transition:width 1s ease;width:0%;}
+.risk-val{font-size:0.78rem;font-weight:700;color:var(--text2);width:32px;text-align:left;}
+.q-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1.2rem;}
+.q-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;}
+.q-pill{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(79,127,255,0.08);border:1px solid rgba(79,127,255,0.2);color:var(--text2);padding:0.4rem 0.9rem;border-radius:20px;font-size:0.82rem;margin:0.25rem;line-height:1.5;}
+.error-msg{background:rgba(232,84,84,0.1);border:1px solid rgba(232,84,84,0.25);color:var(--red);padding:0.9rem 1.1rem;border-radius:8px;font-size:0.87rem;margin-top:1rem;display:none;}
+.theory-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1.2rem;}
+.theory-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;}
+.theory-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+.theory-card{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:1rem 1.1rem;}
+.theory-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.3rem;}
+.theory-name{font-size:0.85rem;font-weight:700;color:var(--text);line-height:1.3;}
+.theory-rel{font-size:0.7rem;font-weight:600;white-space:nowrap;}
+.theory-group{font-size:0.72rem;font-weight:600;margin-bottom:0.5rem;}
+.theory-insight{font-size:0.82rem;color:var(--text2);line-height:1.6;}
+@media(max-width:580px){.theory-grid{grid-template-columns:1fr;}}
+@media(max-width:580px){.behavior-grid{grid-template-columns:1fr;}.panel-title{font-size:1.3rem;}.progress-track::before{display:none;}.prog-label{display:none;}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo"><div class="logo-dot"></div>Decision<span>Lens</span></div>
+  <div class="nav-right">
+    <div class="org-badge" id="orgBadge"><div class="org-dot"></div><span id="orgName"></span></div>
+    <button class="logout-btn" id="logoutBtn" onclick="logout()">خروج</button>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="lAr" onclick="setLang('ar')">ع</button>
+      <button class="lang-btn" id="lEn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <div class="login-title" id="ltitle">أدخل كود جهتك</div>
+      <div class="login-sub" id="lsub">كل جهة لديها كود خاص يمنحها وصولاً معزولاً لبياناتها فقط</div>
+      <input class="code-input" id="codeInput" type="text" placeholder="مثال: ORG-ALPHA" maxlength="20"
+        onkeydown="if(event.key==='Enter')submitCode()">
+      <div class="login-error" id="loginErr" data-ar="الكود غير صحيح — تحقق منه وأعد المحاولة" data-en="Invalid code — please check and try again">الكود غير صحيح — تحقق منه وأعد المحاولة</div>
+      <button class="btn-main" onclick="submitCode()" style="width:100%;justify-content:center">
+        <span id="lbtn">دخول</span>
+      </button>
+      <div class="login-hint" id="lhint">
+        للتجربة: كود جهة أ = <code>ORG-ALPHA</code> &nbsp;|&nbsp; كود جهة ب = <code>ORG-BETA</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+  <div class="app">
+
+    <div class="progress-track">
+      <div class="prog-step active" id="ps1"><div class="prog-dot">١</div><div class="prog-label" data-ar="بروفايل المنظمة" data-en="Org Profile">بروفايل المنظمة</div></div>
+      <div class="prog-step" id="ps2"><div class="prog-dot">٢</div><div class="prog-label" data-ar="بروفايل القائد" data-en="Leader Profile">بروفايل القائد</div></div>
+      <div class="prog-step" id="ps3"><div class="prog-dot">٣</div><div class="prog-label" data-ar="القرار" data-en="Decision">القرار</div></div>
+      <div class="prog-step" id="ps4"><div class="prog-dot">٤</div><div class="prog-label" data-ar="التحليل" data-en="Analysis">التحليل</div></div>
+    </div>
+
+    <!-- Panel 1: Org -->
+    <div class="panel active" id="panel1">
+      <div class="panel-header">
+        <div class="panel-tag" data-ar="خطوة ١ — يُعبأ مرة واحدة من إدارة الجهة" data-en="Step 1 — Filled once by org admin">خطوة ١ — يُعبأ مرة واحدة من إدارة الجهة</div>
+        <div class="panel-title" data-ar="بروفايل المنظمة" data-en="Organization Profile">بروفايل المنظمة</div>
+        <div class="panel-desc" data-ar="هذه البيانات مرتبطة بكود جهتك ومحفوظة لجميع القادة في نفس الجهة." data-en="This data is linked to your org code and shared with all leaders in your org.">هذه البيانات مرتبطة بكود جهتك ومحفوظة لجميع القادة في نفس الجهة.</div>
+      </div>
+
+      <div class="saved-bar" id="orgSavedBar">
+        <div class="saved-bar-text">✓ <span data-ar="بروفايل المنظمة محفوظ مسبقاً" data-en="Org profile already saved">بروفايل المنظمة محفوظ مسبقاً</span></div>
+        <button class="edit-btn" onclick="editSection('org')" data-ar="تعديل" data-en="Edit">تعديل</button>
+      </div>
+
+      <div id="orgForm">
+        <div class="form-section">
+          <div class="fsec-title" data-ar="معلومات أساسية" data-en="Basic Info">معلومات أساسية</div>
+          <div class="field">
+            <label class="field-label" data-ar="القطاع" data-en="Sector">القطاع</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="sector" id="s1" value="gov"><label for="s1" data-ar="حكومي" data-en="Government">حكومي</label></div>
+              <div class="radio-opt"><input type="radio" name="sector" id="s2" value="private"><label for="s2" data-ar="خاص" data-en="Private">خاص</label></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-ar="حجم المنظمة" data-en="Size">حجم المنظمة</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="orgSize" id="os1" value="small"><label for="os1" data-ar="١٠٠ فأقل" data-en="≤100">١٠٠ فأقل</label></div>
+              <div class="radio-opt"><input type="radio" name="orgSize" id="os2" value="medium"><label for="os2" data-ar="١٠٠–٣٥٠" data-en="100–350">١٠٠–٣٥٠</label></div>
+              <div class="radio-opt"><input type="radio" name="orgSize" id="os3" value="large"><label for="os3" data-ar="أكثر من ٣٥٠" data-en=">350">أكثر من ٣٥٠</label></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-ar="عمر المنظمة" data-en="Age">عمر المنظمة</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="orgAge" id="oa1" value="new"><label for="oa1" data-ar="أقل من ٥ سنوات" data-en="<5 yrs">أقل من ٥ سنوات</label></div>
+              <div class="radio-opt"><input type="radio" name="orgAge" id="oa2" value="mid"><label for="oa2" data-ar="٥–١٥ سنة" data-en="5–15 yrs">٥–١٥ سنة</label></div>
+              <div class="radio-opt"><input type="radio" name="orgAge" id="oa3" value="mature"><label for="oa3" data-ar="أكثر من ١٥" data-en=">15 yrs">أكثر من ١٥</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="fsec-title" data-ar="الثقافة والاستقلالية" data-en="Culture & Autonomy">الثقافة والاستقلالية</div>
+          <div class="field">
+            <label class="field-label" data-ar="تقبّل الموظفين للتغيير" data-en="Change acceptance">تقبّل الموظفين للتغيير</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="changeAccept" id="ca1" value="positive"><label for="ca1" data-ar="بإيجابية" data-en="Positively">بإيجابية</label></div>
+              <div class="radio-opt"><input type="radio" name="changeAccept" id="ca2" value="sometimes"><label for="ca2" data-ar="أحياناً صعب" data-en="Sometimes hard">أحياناً صعب</label></div>
+              <div class="radio-opt"><input type="radio" name="changeAccept" id="ca3" value="hard"><label for="ca3" data-ar="صعب دائماً" data-en="Always hard">صعب دائماً</label></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-ar="استقلالية القرارات" data-en="Decision autonomy">استقلالية القرارات</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="autonomy" id="au1" value="full"><label for="au1" data-ar="مستقلة بالكامل" data-en="Fully independent">مستقلة بالكامل</label></div>
+              <div class="radio-opt"><input type="radio" name="autonomy" id="au2" value="partial"><label for="au2" data-ar="جزئياً" data-en="Partially">جزئياً</label></div>
+              <div class="radio-opt"><input type="radio" name="autonomy" id="au3" value="none"><label for="au3" data-ar="غير مستقلة" data-en="Not independent">غير مستقلة</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-main" onclick="saveOrg()" data-ar="حفظ بروفايل المنظمة ←" data-en="Save Org Profile →">حفظ بروفايل المنظمة ←</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Leader -->
+    <div class="panel" id="panel2">
+      <div class="panel-header">
+        <div class="panel-tag" data-ar="خطوة ٢ — بروفايلك الشخصي، يُحفظ تلقائياً" data-en="Step 2 — Your personal profile, auto-saved">خطوة ٢ — بروفايلك الشخصي، يُحفظ تلقائياً</div>
+        <div class="panel-title" data-ar="بروفايل القائد" data-en="Leader Profile">بروفايل القائد</div>
+        <div class="panel-desc" data-ar="بروفايلك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه." data-en="Your profile is tied to your org code — no need to re-enter it.">بروفايلك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه.</div>
+      </div>
+
+      <div class="saved-bar" id="leaderSavedBar">
+        <div class="saved-bar-text">✓ <span data-ar="بروفايلك القيادي محفوظ" data-en="Your leader profile is saved">بروفايلك القيادي محفوظ</span></div>
+        <button class="edit-btn" onclick="editSection('leader')" data-ar="تعديل" data-en="Edit">تعديل</button>
+      </div>
+
+      <div id="leaderForm">
+        <div class="form-section">
+          <div class="fsec-title" data-ar="أسلوبك القيادي" data-en="Leadership Style">أسلوبك القيادي</div>
+          <div class="field">
+            <label class="field-label" data-ar="الأسلوب الغالب" data-en="Dominant style">الأسلوب الغالب</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="lstyle" id="ls1" value="directive"><label for="ls1" data-ar="توجيهي" data-en="Directive">توجيهي</label></div>
+              <div class="radio-opt"><input type="radio" name="lstyle" id="ls2" value="participative"><label for="ls2" data-ar="تشاركي" data-en="Participative">تشاركي</label></div>
+              <div class="radio-opt"><input type="radio" name="lstyle" id="ls3" value="delegative"><label for="ls3" data-ar="تفويضي" data-en="Delegative">تفويضي</label></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-ar="عدد المرؤوسين المباشرين" data-en="Direct reports">عدد المرؤوسين المباشرين</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="reports" id="dr1" value="few"><label for="dr1" data-ar="٥ فأقل" data-en="≤5">٥ فأقل</label></div>
+              <div class="radio-opt"><input type="radio" name="reports" id="dr2" value="mid"><label for="dr2" data-ar="٥–١٥" data-en="5–15">٥–١٥</label></div>
+              <div class="radio-opt"><input type="radio" name="reports" id="dr3" value="many"><label for="dr3" data-ar="١٥ فأكثر" data-en="≥15">١٥ فأكثر</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="fsec-title" data-ar="طبيعة فريقك" data-en="Your Team">طبيعة فريقك</div>
+          <div class="field">
+            <label class="field-label" data-ar="مستوى الثقة مع الفريق" data-en="Trust level">مستوى الثقة مع الفريق</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="trust" id="tr1" value="high"><label for="tr1" data-ar="عالٍ" data-en="High">عالٍ</label></div>
+              <div class="radio-opt"><input type="radio" name="trust" id="tr2" value="medium"><label for="tr2" data-ar="متوسط" data-en="Medium">متوسط</label></div>
+              <div class="radio-opt"><input type="radio" name="trust" id="tr3" value="low"><label for="tr3" data-ar="منخفض" data-en="Low">منخفض</label></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-ar="غالبية موظفيك" data-en="Most employees">غالبية موظفيك</label>
+            <div class="radio-group">
+              <div class="radio-opt"><input type="radio" name="seniority" id="sr1" value="new"><label for="sr1" data-ar="جدد (<٣ سنوات)" data-en="New (<3 yrs)">جدد (<٣ سنوات)</label></div>
+              <div class="radio-opt"><input type="radio" name="seniority" id="sr2" value="mid"><label for="sr2" data-ar="متوسطو الخبرة" data-en="Mid-level">متوسطو الخبرة</label></div>
+              <div class="radio-opt"><input type="radio" name="seniority" id="sr3" value="senior"><label for="sr3" data-ar="قدامى (>٧ سنوات)" data-en="Senior (>7 yrs)">قدامى (>٧ سنوات)</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-main" onclick="saveLeader()" data-ar="حفظ بروفايلي والمتابعة ←" data-en="Save & Continue →">حفظ بروفايلي والمتابعة ←</button>
+          <button class="btn-ghost" onclick="goPanel(1)" data-ar="رجوع" data-en="Back">رجوع</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Decision -->
+    <div class="panel" id="panel3">
+      <div class="panel-header">
+        <div class="panel-tag" data-ar="خطوة ٣ — يُملأ مع كل قرار جديد" data-en="Step 3 — Filled for each decision">خطوة ٣ — يُملأ مع كل قرار جديد</div>
+        <div class="panel-title" data-ar="القرار التنظيمي" data-en="The Decision">القرار التنظيمي</div>
+        <div class="panel-desc" data-ar="اكتب قرارك بكلامك الطبيعي وأجب على الأسئلة." data-en="Describe your decision and answer the questions.">اكتب قرارك بكلامك الطبيعي وأجب على الأسئلة.</div>
+      </div>
+
+      <div class="form-section">
+        <div class="fsec-title" data-ar="وصف القرار" data-en="Decision Description">وصف القرار</div>
+        <div class="field">
+          <label class="field-label" data-ar="ما القرار الذي تفكر في تنفيذه؟" data-en="What decision are you considering?">ما القرار الذي تفكر في تنفيذه؟</label>
+          <textarea id="decisionText" rows="4" placeholder="اكتب قرارك هنا بكل تفاصيله..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="fsec-title" data-ar="خصائص القرار" data-en="Decision Details">خصائص القرار</div>
+        <div class="field">
+          <label class="field-label" data-ar="قابلية التعديل" data-en="Flexibility">قابلية التعديل</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="flex" id="fl1" value="flexible"><label for="fl1" data-ar="قابل للتعديل" data-en="Flexible">قابل للتعديل</label></div>
+            <div class="radio-opt"><input type="radio" name="flex" id="fl2" value="partial"><label for="fl2" data-ar="جزئياً" data-en="Partially">جزئياً</label></div>
+            <div class="radio-opt"><input type="radio" name="flex" id="fl3" value="fixed"><label for="fl3" data-ar="غير قابل" data-en="Fixed">غير قابل</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" data-ar="توقيت التنفيذ" data-en="Timing">توقيت التنفيذ</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="timing" id="ti1" value="immediate"><label for="ti1" data-ar="فوري" data-en="Immediate">فوري</label></div>
+            <div class="radio-opt"><input type="radio" name="timing" id="ti2" value="months"><label for="ti2" data-ar="خلال أشهر" data-en="Within months">خلال أشهر</label></div>
+            <div class="radio-opt"><input type="radio" name="timing" id="ti3" value="gradual"><label for="ti3" data-ar="تدريجي" data-en="Gradual">تدريجي</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" data-ar="علم الموظفين بالقرار" data-en="Employee awareness">علم الموظفين بالقرار</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="awareness" id="aw1" value="secret"><label for="aw1" data-ar="سري تماماً" data-en="Secret">سري تماماً</label></div>
+            <div class="radio-opt"><input type="radio" name="awareness" id="aw2" value="leaked"><label for="aw2" data-ar="يوجد تسريبات" data-en="Leaked">يوجد تسريبات</label></div>
+            <div class="radio-opt"><input type="radio" name="awareness" id="aw3" value="announced"><label for="aw3" data-ar="معلن رسمياً" data-en="Announced">معلن رسمياً</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="fsec-title" data-ar="الفئات المتأثرة" data-en="Affected Groups">الفئات المتأثرة</div>
+        <div class="field">
+          <label class="field-label" data-ar="الفئة ومستوى تأثرها (L منخفض / M متوسط / H عالٍ)" data-en="Group and impact level (L / M / H)">الفئة ومستوى تأثرها (L منخفض / M متوسط / H عالٍ)</label>
+          <div class="groups-builder" id="groupsBuilder"></div>
+          <button class="add-group-btn" onclick="addGroup()">
+            <span>+</span><span data-ar="إضافة فئة" data-en="Add Group">إضافة فئة</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-main" onclick="runAnalysis()">
+          <span data-ar="🔍 تحليل السلوك المتوقع" data-en="🔍 Analyze Behavior">🔍 تحليل السلوك المتوقع</span>
+        </button>
+        <button class="btn-ghost" onclick="goPanel(2)" data-ar="رجوع" data-en="Back">رجوع</button>
+      </div>
+      <div class="error-msg" id="errorMsg" data-ar="حدث خطأ — تأكد من الاتصال وحاول مجدداً" data-en="Error — check connection and try again">حدث خطأ — تأكد من الاتصال وحاول مجدداً</div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-view" id="loadingView">
+      <div class="loader-ring"></div>
+      <div style="font-size:1rem;font-weight:700;" data-ar="جارٍ تحليل السلوك التنظيمي المتوقع..." data-en="Analyzing expected behavior...">جارٍ تحليل السلوك التنظيمي المتوقع...</div>
+      <div style="font-size:0.83rem;color:var(--text2);max-width:320px;line-height:1.6;" data-ar="الذكاء الاصطناعي يدمج بروفايل جهتك مع القرار" data-en="AI is combining your org profile with the decision">الذكاء الاصطناعي يدمج بروفايل جهتك مع القرار</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-view" id="resultsView">
+      <div class="results-topbar">
+        <div>
+          <div class="results-heading" data-ar="تصور السلوك المتوقع" data-en="Expected Behavior Forecast">تصور السلوك المتوقع</div>
+          <div class="dec-chip">📋 <span id="decChip"></span></div>
+        </div>
+        <button class="btn-ghost" onclick="newDecision()"><span data-ar="↺ قرار جديد" data-en="↺ New Decision">↺ قرار جديد</span></button>
+      </div>
+      <div id="summarySection"></div>
+      <div class="behavior-grid" id="behaviorGrid"></div>
+      <div id="riskSection"></div>
+      <div id="questionsSection"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let lang='ar', orgCode=null, groups=[];
+
+// Valid codes — in production replace with server validation
+const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
+
+// Storage — keyed per org code so data is fully isolated
+function sk(k){return `dl_${orgCode}_${k}`;}
+function sv(k,v){try{localStorage.setItem(sk(k),JSON.stringify(v));}catch(e){}}
+function ld(k){try{const v=localStorage.getItem(sk(k));return v?JSON.parse(v):null;}catch(e){return null;}}
+
+function submitCode(){
+  const raw=document.getElementById('codeInput').value.trim().toUpperCase();
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  if(!CODES[raw]){
+    err.style.display='block';
+    return;
+  }
+  orgCode=raw;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('orgBadge').classList.add('show');
+  document.getElementById('orgName').textContent=CODES[raw];
+  document.getElementById('logoutBtn').classList.add('show');
+  initApp();
+}
+
+function logout(){
+  orgCode=null;
+  document.getElementById('loginScreen').style.display='block';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('orgBadge').classList.remove('show');
+  document.getElementById('logoutBtn').classList.remove('show');
+  document.getElementById('codeInput').value='';
+}
+
+function initApp(){
+  const org=ld('org'), ldr=ld('leader');
+  groups=[];addGroup('','');addGroup('','');
+  if(org){
+    fillRadios(org,['sector','orgSize','orgAge','changeAccept','autonomy']);
+    document.getElementById('orgSavedBar').classList.add('show');
+    document.getElementById('orgForm').style.display='none';
+    if(ldr){
+      fillRadios(ldr,['lstyle','reports','trust','seniority']);
+      document.getElementById('leaderSavedBar').classList.add('show');
+      document.getElementById('leaderForm').style.display='none';
+      goPanel(3);
+    } else {goPanel(2);}
+  } else {goPanel(1);}
+}
+
+function fillRadios(data,fields){
+  fields.forEach(f=>{
+    const el=document.querySelector(`input[name="${f}"][value="${data[f]}"]`);
+    if(el)el.checked=true;
+  });
+}
+
+function goPanel(n){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel'+n)?.classList.add('active');
+  document.getElementById('loadingView').classList.remove('show');
+  document.getElementById('resultsView').classList.remove('show');
+  for(let i=1;i<=4;i++){
+    const el=document.getElementById('ps'+i);if(!el)continue;
+    el.className='prog-step';
+    if(i<n)el.classList.add('done');
+    if(i===n)el.classList.add('active');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function editSection(sec){
+  if(sec==='org'){
+    document.getElementById('orgSavedBar').classList.remove('show');
+    document.getElementById('orgForm').style.display='block';
+  } else {
+    document.getElementById('leaderSavedBar').classList.remove('show');
+    document.getElementById('leaderForm').style.display='block';
+  }
+}
+
+function saveOrg(){
+  const d={
+    sector:document.querySelector('input[name="sector"]:checked')?.value,
+    orgSize:document.querySelector('input[name="orgSize"]:checked')?.value,
+    orgAge:document.querySelector('input[name="orgAge"]:checked')?.value,
+    changeAccept:document.querySelector('input[name="changeAccept"]:checked')?.value,
+    autonomy:document.querySelector('input[name="autonomy"]:checked')?.value
+  };
+  if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
+  sv('org',d);
+  document.getElementById('orgSavedBar').classList.add('show');
+  document.getElementById('orgForm').style.display='none';
+  goPanel(2);
+}
+
+function saveLeader(){
+  const d={
+    lstyle:document.querySelector('input[name="lstyle"]:checked')?.value,
+    reports:document.querySelector('input[name="reports"]:checked')?.value,
+    trust:document.querySelector('input[name="trust"]:checked')?.value,
+    seniority:document.querySelector('input[name="seniority"]:checked')?.value
+  };
+  if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
+  sv('leader',d);
+  document.getElementById('leaderSavedBar').classList.add('show');
+  document.getElementById('leaderForm').style.display='none';
+  goPanel(3);
+}
+
+function addGroup(name='',impact=''){
+  const id=Date.now()+Math.random();
+  groups.push({id,name,impact});
+  renderGroups();
+}
+function renderGroups(){
+  const b=document.getElementById('groupsBuilder');if(!b)return;
+  b.innerHTML=groups.map(g=>`
+    <div class="group-row">
+      <input class="group-input" placeholder="${lang==='ar'?'اسم الفئة (مثال: المدراء المتوسطون)':'Group name'}"
+        value="${g.name}" oninput="updG(${g.id},'name',this.value)">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <div class="impact-sel">
+          <button class="ibtn low ${g.impact==='low'?'sel':''}" onclick="updG(${g.id},'impact','low')">L</button>
+          <button class="ibtn med ${g.impact==='med'?'sel':''}" onclick="updG(${g.id},'impact','med')">M</button>
+          <button class="ibtn high ${g.impact==='high'?'sel':''}" onclick="updG(${g.id},'impact','high')">H</button>
+        </div>
+        <button class="rm-btn" onclick="rmG(${g.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+function updG(id,k,v){const g=groups.find(x=>x.id===id);if(g)g[k]=v;if(k==='impact')renderGroups();}
+function rmG(id){groups=groups.filter(x=>x.id!==id);renderGroups();}
+
+async function runAnalysis(){
+  const dec=document.getElementById('decisionText').value.trim();
+  const flex=document.querySelector('input[name="flex"]:checked')?.value;
+  const timing=document.querySelector('input[name="timing"]:checked')?.value;
+  const awareness=document.querySelector('input[name="awareness"]:checked')?.value;
+  if(dec.length<15){document.getElementById('decisionText').focus();return;}
+  if(!flex||!timing||!awareness){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
+
+  const org=ld('org'), ldr=ld('leader');
+  const fg=groups.filter(g=>g.name.trim());
+
+  document.getElementById('panel3').classList.remove('active');
+  document.getElementById('errorMsg').style.display='none';
+  document.getElementById('loadingView').classList.add('show');
+  for(let i=1;i<=4;i++){const el=document.getElementById('ps'+i);if(!el)continue;el.className='prog-step';if(i<4)el.classList.add('done');if(i===4)el.classList.add('active');}
+
+  const L={
+    sector:{gov:'حكومي',private:'خاص'},
+    orgSize:{small:'أقل من ١٠٠',medium:'١٠٠–٣٥٠',large:'أكثر من ٣٥٠'},
+    orgAge:{new:'ناشئة (<٥ سنوات)',mid:'٥–١٥ سنة',mature:'راسخة (>١٥)'},
+    changeAccept:{positive:'إيجابي',sometimes:'أحياناً مقاومة',hard:'مقاومة دائمة'},
+    autonomy:{full:'مستقلة بالكامل',partial:'جزئياً',none:'غير مستقلة'},
+    lstyle:{directive:'توجيهي',participative:'تشاركي',delegative:'تفويضي'},
+    reports:{few:'٥ فأقل',mid:'٥–١٥',many:'١٥ فأكثر'},
+    trust:{high:'عالٍ',medium:'متوسط',low:'منخفض'},
+    seniority:{new:'جدد (<٣ سنوات)',mid:'متوسطو الخبرة',senior:'قدامى (>٧ سنوات)'},
+    flex:{flexible:'قابل للتعديل',partial:'جزئياً',fixed:'غير قابل'},
+    timing:{immediate:'فوري',months:'خلال أشهر',gradual:'تدريجي'},
+    awareness:{secret:'سري',leaked:'تسريبات',announced:'معلن'},
+    impact:{low:'منخفض',med:'متوسط',high:'عالٍ'}
+  };
+
+  const gs=fg.length?fg.map(g=>`- ${g.name}: تأثير ${L.impact[g.impact]||'غير محدد'}`).join('\n'):'لم تُحدد فئات';
+
+  const THEORIES = `
+مجموعة 1 - نظريات التغيير:
+- Kotter's 8-Step Change Model
+- Kübler-Ross Change Curve
+- Lewin's Change Model (Unfreeze-Change-Refreeze)
+- Structural Inertia Theory (Hannan & Freeman 1984)
+- Organizational Imprinting (Stinchcombe 1965)
+
+مجموعة 2 - نظريات الدوافع والأداء:
+- Maslow's Hierarchy of Needs
+- Herzberg's Two-Factor Theory
+- Vroom's Expectancy Theory
+- Intrinsic vs Extrinsic Motivation (Cerasoli et al.)
+
+مجموعة 3 - نظريات العدالة والثقة:
+- Organizational Justice Theory
+- Social Exchange Theory
+- Psychological Contract Breach (Morrison & Robinson)
+
+مجموعة 4 - نظريات القوة والسلطة:
+- French & Raven's Power Bases
+- Situational Leadership Theory
+- Social Hierarchy & Middle Power (Magee & Galinsky)
+
+مجموعة 5 - نظريات الثقافة والكفاءة:
+- Competing Values Framework (Quinn)
+- Dynamic Capabilities (Teece, Pisano & Shuen 1997)
+
+مجموعة 6 - نظريات السلوك الجماعي:
+- Team Diversity Theory (van Knippenberg et al.)
+- Organizational Citizenship Behavior / OCB (Podsakoff et al.)
+`;
+
+  const prompt=`أنت خبير في Organizational Behavior وHRM. مهمتك تحليل السلوك التنظيمي المتوقع بناءً على نظريات علمية محددة.
+
+== بيانات المنظمة ==
+القطاع: ${L.sector[org?.sector]} | الحجم: ${L.orgSize[org?.orgSize]} | العمر: ${L.orgAge[org?.orgAge]}
+تقبل التغيير: ${L.changeAccept[org?.changeAccept]} | الاستقلالية: ${L.autonomy[org?.autonomy]}
+
+== بيانات القائد ==
+الأسلوب: ${L.lstyle[ldr?.lstyle]} | المرؤوسون: ${L.reports[ldr?.reports]}
+الثقة: ${L.trust[ldr?.trust]} | خبرة الفريق: ${L.seniority[ldr?.seniority]}
+
+== القرار ==
+${dec}
+قابلية التعديل: ${L.flex[flex]} | التوقيت: ${L.timing[timing]} | وعي الموظفين: ${L.awareness[awareness]}
+الفئات المتأثرة: ${gs}
+
+== مكتبة النظريات المتاحة ==
+${THEORIES}
+
+== التعليمات ==
+1. اختر من 3 إلى 6 نظريات الأنسب لهذا القرار تحديداً من المكتبة أعلاه — لا تطبق كلها
+2. إذا رأيت نظرية أخرى من OB أو HRM تناسب القرار بشكل خاص وليست في المكتبة، أضفها
+3. لكل نظرية مختارة: اشرح كيف تتجلى في هذا القرار وما السلوك المتوقع بناءً عليها
+4. أرجع JSON فقط بدون أي نص خارجه
+
+الشكل المطلوب:
+{"summary":"جملتان تصفان المشهد السلوكي العام مع الإشارة للنظريات الأبرز","theories":[{"name":"اسم النظرية","group":"مجموعة 1","relevance":"high/medium","insight":"كيف تتجلى هذه النظرية في هذا القرار تحديداً وما السلوك المتوقع بناءً عليها (جملتان)"},{"name":"نظرية إضافية مناسبة","group":"إضافة","relevance":"high","insight":"تبرير إضافتها وتطبيقها على القرار"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة مبنية على نظرية","نقطة2","نقطة3"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2","نقطة3"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2","نقطة3"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2","نقطة3"]},{"id":"groups","icon":"👥","title":"سلوك الفئات المتأثرة","color":"#2ecc8a","points":["نقطة1","نقطة2","نقطة3"]},{"id":"timeline","icon":"📅","title":"تطور السلوك عبر الزمن","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"questions":["سؤال تأملي 1","سؤال 2","سؤال 3","سؤال 4"]}`;
+
+  try{
+    const res=await fetch("https://decisionlens-api.a-aloraini88.workers.dev",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        model:"claude-haiku-4-5-20251001",
+        max_tokens:3000,
+        system:"You are an organizational behavior expert. Always respond with valid JSON only, no other text.",
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const raw=await res.text();
+    let data;
+    try{data=JSON.parse(raw);}catch(pe){throw new Error('HTTP parse fail: '+raw.slice(0,300));}
+    if(!res.ok||data.error){throw new Error((data.error&&data.error.message)||'HTTP '+res.status);}
+    const text=(data.content||[]).map(i=>i.text||'').join('').trim();
+    if(!text)throw new Error('رد فارغ - مفاتيح البيانات: '+Object.keys(data).join(','));
+    let parsed;
+    try{
+      const match=text.match(/\{[\s\S]*\}/);
+      if(!match)throw new Error('لا يوجد JSON. النص: '+text.slice(0,200));
+      parsed=JSON.parse(match[0]);
+    }catch(je){throw new Error(je.message+' || النص: '+text.slice(0,150));}
+    renderResults(parsed,dec);
+  }catch(e){
+    document.getElementById('loadingView').classList.remove('show');
+    document.getElementById('panel3').classList.add('active');
+    document.getElementById('errorMsg').style.display='block';
+    document.getElementById('errorMsg').textContent='خطأ: '+String(e?.message||e);
+    for(let i=1;i<=4;i++){const el=document.getElementById('ps'+i);if(!el)continue;el.className='prog-step';if(i<3)el.classList.add('done');if(i===3)el.classList.add('active');}
+  }
+}
+
+function renderResults(data,dec){
+  document.getElementById('loadingView').classList.remove('show');
+  document.getElementById('decChip').textContent=dec.length>65?dec.slice(0,65)+'...':dec;
+  document.getElementById('summarySection').innerHTML=`<div class="summary-card"><div class="sum-label">✦ المشهد السلوكي العام</div><div class="sum-text">${data.summary}</div></div>`;
+
+  // Theories section
+  if(data.theories && data.theories.length){
+    const relColor = r => r==='high'?'var(--accent)':r==='medium'?'var(--gold)':'var(--text3)';
+    const relLabel = r => r==='high'?'عالية الصلة':r==='medium'?'متوسطة الصلة':'ذات صلة';
+    const groupColor = g => g.includes('1')||g.includes('التغيير')?'#4f7fff':g.includes('2')||g.includes('الدوافع')?'#2ecc8a':g.includes('3')||g.includes('العدالة')?'#e8a838':g.includes('4')||g.includes('القوة')?'#e85454':g.includes('5')||g.includes('الثقافة')?'#7b5ea7':'#4fc3f7';
+    document.getElementById('summarySection').innerHTML += `<div class="theory-section">
+      <div class="theory-hd">🔬 النظريات المُطبَّقة على هذا القرار</div>
+      <div class="theory-grid">${data.theories.map(t=>`
+        <div class="theory-card">
+          <div class="theory-card-top">
+            <div class="theory-name">${t.name}</div>
+            <span class="theory-rel" style="color:${relColor(t.relevance)}">${relLabel(t.relevance)}</span>
+          </div>
+          <div class="theory-group" style="color:${groupColor(t.group||'')}">
+            ${t.group==='إضافة'?'➕ نظرية إضافية':'📚 '+t.group}
+          </div>
+          <div class="theory-insight">${t.insight}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('behaviorGrid').innerHTML=data.behaviors.map(b=>`<div class="bcard"><div class="bcard-stripe" style="background:linear-gradient(90deg,${b.color},transparent)"></div><div class="bcard-icon">${b.icon}</div><div class="bcard-title">${b.title}</div><div class="bcard-content"><ul>${b.points.map(p=>`<li>${p}</li>`).join('')}</ul></div></div>`).join('');
+  document.getElementById('riskSection').innerHTML=`<div class="risk-wrap"><div class="risk-hd">📊 مؤشرات السلوك المتوقع</div>${data.risks.map((r,i)=>`<div class="risk-row"><div class="risk-lbl">${r.label}</div><div class="risk-track"><div class="risk-fill" id="rf${i}" style="background:${r.level>70?'var(--red)':r.level>45?'var(--gold)':'var(--green)'}"></div></div><div class="risk-val">${r.level}%</div></div>`).join('')}</div>`;
+  setTimeout(()=>data.risks.forEach((r,i)=>{const el=document.getElementById('rf'+i);if(el)el.style.width=r.level+'%';}),100);
+  document.getElementById('questionsSection').innerHTML=`<div class="q-sec"><div class="q-hd">💭 أسئلة تستحق التأمل قبل التنفيذ</div><div>${data.questions.map(q=>`<span class="q-pill">◦ ${q}</span>`).join('')}</div></div>`;
+  document.getElementById('resultsView').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function newDecision(){
+  document.getElementById('decisionText').value='';
+  ['flex','timing','awareness'].forEach(n=>document.querySelectorAll(`input[name="${n}"]`).forEach(r=>r.checked=false));
+  groups=[];addGroup('','');addGroup('','');
+  document.getElementById('resultsView').classList.remove('show');
+  goPanel(3);
+}
+
+function setLang(l){
+  lang=l;
+  document.getElementById('lAr').classList.toggle('active',l==='ar');
+  document.getElementById('lEn').classList.toggle('active',l==='en');
+  document.documentElement.setAttribute('dir',l==='ar'?'rtl':'ltr');
+  document.querySelectorAll('[data-ar]').forEach(el=>{
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')return;
+    el.textContent=l==='ar'?el.dataset.ar:el.dataset.en;
+  });
+  const texts={ar:{title:'أدخل كود جهتك',sub:'كل جهة لديها كود خاص يمنحها وصولاً معزولاً لبياناتها فقط',btn:'دخول',hint:'للتجربة: كود جهة أ = <code>ORG-ALPHA</code> &nbsp;|&nbsp; كود جهة ب = <code>ORG-BETA</code>',logout:'خروج'},en:{title:'Enter your org code',sub:'Each org has a unique code for isolated access to its own data',btn:'Enter',hint:'Demo: Org A = <code>ORG-ALPHA</code> &nbsp;|&nbsp; Org B = <code>ORG-BETA</code>',logout:'Logout'}};
+  const t=texts[l];
+  document.getElementById('ltitle').textContent=t.title;
+  document.getElementById('lsub').textContent=t.sub;
+  document.getElementById('lbtn').textContent=t.btn;
+  document.getElementById('lhint').innerHTML=t.hint;
+  document.getElementById('logoutBtn').textContent=t.logout;
+  document.getElementById('codeInput').placeholder=l==='ar'?'مثال: ORG-ALPHA':'e.g. ORG-ALPHA';
+  renderGroups();
+}
+</script>
+</body>
+</html>
