@@ -589,7 +589,7 @@ ${L.flex[flex]},${L.timing[timing]},${L.awareness[awareness]},${gs}
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        model:(dec.length > 100 || ['راتب','رواتب','أجر','تعويض','فصل','إنهاء','إعادة هيكلة','اندماج','دمج','خصخصة','تقليص'].some(k=>dec.includes(k))) ? "claude-sonnet-4-5" : "claude-haiku-4-5-20251001",
+        model:"claude-sonnet-4-5",'رواتب','أجر','تعويض','فصل','إنهاء','إعادة هيكلة','اندماج','دمج','خصخصة','تقليص'].some(k=>dec.includes(k))) ? "claude-sonnet-4-5" : "claude-haiku-4-5-20251001",
         max_tokens:8000,
         system:"You are an organizational behavior expert. Always respond with valid JSON only. No markdown, no code blocks, no extra text. Start your response with { and end with }. Ensure all strings are properly escaped and the JSON is complete and valid.",
         messages:[{role:"user",content:prompt}]
@@ -600,23 +600,27 @@ ${L.flex[flex]},${L.timing[timing]},${L.awareness[awareness]},${gs}
     try{data=JSON.parse(raw);}catch(pe){throw new Error('HTTP parse fail: '+raw.slice(0,300));}
     if(!res.ok||data.error){throw new Error((data.error&&data.error.message)||'HTTP '+res.status);}
     const text=(data.content||[]).map(i=>i.text||'').join('').trim();
-    if(!text)throw new Error('رد فارغ. stop_reason='+data.stop_reason+' model='+data.model+' keys='+Object.keys(data).join(','));
-    if(data.stop_reason === 'max_tokens'){throw new Error('الرد طويل جداً (max_tokens) — موديل: '+(data.model||'unknown'));}
+    if(!text)throw new Error('رد فارغ');
     let parsed;
     try{
-      // Extract JSON more robustly
-      let jsonStr = text;
-      // Remove markdown code blocks
-      jsonStr = jsonStr.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
-      // Find the outermost JSON object
+      let jsonStr = text.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
       const start = jsonStr.indexOf('{');
-      const end = jsonStr.lastIndexOf('}');
-      if(start === -1 || end === -1) throw new Error('لا يوجد JSON في الرد');
-      jsonStr = jsonStr.slice(start, end+1);
-      // Fix common JSON issues - remove trailing commas
+      let end = jsonStr.lastIndexOf('}');
+      if(start === -1) throw new Error('لا يوجد JSON');
+      // If JSON is truncated, try to close it
+      if(end === -1 || end < start){
+        jsonStr = jsonStr.slice(start);
+        // Count unclosed brackets and close them
+        let opens = 0, arrOpens = 0;
+        for(const c of jsonStr){ if(c==='{')opens++; if(c==='}')opens--; if(c==='[')arrOpens++; if(c===']')arrOpens--; }
+        while(arrOpens > 0){ jsonStr += ']'; arrOpens--; }
+        while(opens > 0){ jsonStr += '}'; opens--; }
+      } else {
+        jsonStr = jsonStr.slice(start, end+1);
+      }
       jsonStr = jsonStr.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
       parsed=JSON.parse(jsonStr);
-    }catch(je){throw new Error(je.message+' || النص: '+text.slice(0,150));}
+    }catch(je){throw new Error(je.message+' | '+text.slice(0,200));}
     renderResults(parsed,dec);
   }catch(e){
     document.getElementById('loadingView').classList.remove('show');
