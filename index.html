@@ -543,7 +543,7 @@ async function runAnalysis(){
   const flex=document.querySelector('input[name="flex"]:checked')?.value;
   const timing=document.querySelector('input[name="timing"]:checked')?.value;
   const awareness=document.querySelector('input[name="awareness"]:checked')?.value;
-  if(dec.length<15){document.getElementById('decisionText').focus();return;}
+  if(dec.length<2){document.getElementById('decisionText').focus();return;}
   if(!flex||!timing||!awareness){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
 
   const org=ld('org'), ldr=ld('leader');
@@ -657,11 +657,13 @@ ${THEORIES}
       if(!match)throw new Error('لا يوجد JSON. النص: '+text.slice(0,200));
       parsed=JSON.parse(match[0]);
     }catch(je){throw new Error(je.message+' || النص: '+text.slice(0,150));}
+    console.log('parsed ok:', JSON.stringify(parsed).slice(0,200));
     renderResults(parsed,dec);
   }catch(e){
     document.getElementById('loadingView').classList.remove('show');
     document.getElementById('panel3').classList.add('active');
     document.getElementById('errorMsg').style.display='block';
+    console.log('ERROR:', e?.message, e);
     document.getElementById('errorMsg').textContent='خطأ: '+String(e?.message||e);
     for(let i=1;i<=4;i++){const el=document.getElementById('ps'+i);if(!el)continue;el.className='prog-step';if(i<3)el.classList.add('done');if(i===3)el.classList.add('active');}
   }
