@@ -139,6 +139,12 @@ textarea::placeholder{color:var(--text3);}
 .theory-rel{font-size:0.7rem;font-weight:600;white-space:nowrap;}
 .theory-group{font-size:0.72rem;font-weight:600;margin-bottom:0.5rem;}
 .theory-insight{font-size:0.82rem;color:var(--text2);line-height:1.6;}
+.settings-bar{position:relative;display:flex;justify-content:flex-left;margin-bottom:1rem;}
+.settings-btn{background:none;border:1px solid var(--border2);border-radius:8px;padding:0.4rem 0.7rem;cursor:pointer;font-size:1rem;color:var(--text2);}
+.settings-btn:hover{background:var(--surface2);}
+.settings-menu{position:absolute;top:110%;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:0.5rem;z-index:100;min-width:180px;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.settings-menu button{display:block;width:100%;text-align:right;background:none;border:none;padding:0.6rem 1rem;color:var(--text);cursor:pointer;border-radius:6px;font-size:0.9rem;}
+.settings-menu button:hover{background:var(--surface2);}
 @media(max-width:580px){.theory-grid{grid-template-columns:1fr;}}
 @media(max-width:580px){.behavior-grid{grid-template-columns:1fr;}.panel-title{font-size:1.3rem;}.progress-track::before{display:none;}.prog-label{display:none;}}
 </style>
@@ -181,23 +187,24 @@ textarea::placeholder{color:var(--text3);}
 <div id="mainApp" style="display:none">
   <div class="app">
 
-    <div class="progress-track">
-      <div class="prog-step active" id="ps1"><div class="prog-dot">١</div><div class="prog-label" data-ar="بروفايل المنظمة" data-en="Org Profile">بروفايل المنظمة</div></div>
-      <div class="prog-step" id="ps2"><div class="prog-dot">٢</div><div class="prog-label" data-ar="بروفايل القائد" data-en="Leader Profile">بروفايل القائد</div></div>
-      <div class="prog-step" id="ps3"><div class="prog-dot">٣</div><div class="prog-label" data-ar="القرار" data-en="Decision">القرار</div></div>
-      <div class="prog-step" id="ps4"><div class="prog-dot">٤</div><div class="prog-label" data-ar="التحليل" data-en="Analysis">التحليل</div></div>
+    <div class="settings-bar">
+      <button class="settings-btn" onclick="toggleSettings()" title="الإعدادات">⚙️</button>
+      <div class="settings-menu" id="settingsMenu" style="display:none">
+        <button onclick="editSection('org')" data-ar="✏️ تعديل المنظمة" data-en="✏️ Edit Organization">✏️ تعديل المنظمة</button>
+        <button onclick="editSection('leader')" data-ar="✏️ تعديل القائد" data-en="✏️ Edit Leader">✏️ تعديل القائد</button>
+      </div>
     </div>
 
     <!-- Panel 1: Org -->
     <div class="panel active" id="panel1">
       <div class="panel-header">
         <div class="panel-tag" data-ar="خطوة ١ — يُعبأ مرة واحدة من إدارة الجهة" data-en="Step 1 — Filled once by org admin">خطوة ١ — يُعبأ مرة واحدة من إدارة الجهة</div>
-        <div class="panel-title" data-ar="بروفايل المنظمة" data-en="Organization Profile">بروفايل المنظمة</div>
+        <div class="panel-title" data-ar="المنظمة" data-en="Organization Profile">المنظمة</div>
         <div class="panel-desc" data-ar="هذه البيانات مرتبطة بكود جهتك ومحفوظة لجميع القادة في نفس الجهة." data-en="This data is linked to your org code and shared with all leaders in your org.">هذه البيانات مرتبطة بكود جهتك ومحفوظة لجميع القادة في نفس الجهة.</div>
       </div>
 
       <div class="saved-bar" id="orgSavedBar">
-        <div class="saved-bar-text">✓ <span data-ar="بروفايل المنظمة محفوظ مسبقاً" data-en="Org profile already saved">بروفايل المنظمة محفوظ مسبقاً</span></div>
+        <div class="saved-bar-text">✓ <span data-ar="المنظمة محفوظ مسبقاً" data-en="Org profile already saved">المنظمة محفوظ مسبقاً</span></div>
         <button class="edit-btn" onclick="editSection('org')" data-ar="تعديل" data-en="Edit">تعديل</button>
       </div>
 
@@ -248,7 +255,7 @@ textarea::placeholder{color:var(--text3);}
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn-main" onclick="saveOrg()" data-ar="حفظ بروفايل المنظمة ←" data-en="Save Org Profile →">حفظ بروفايل المنظمة ←</button>
+          <button class="btn-main" onclick="saveOrg()" data-ar="حفظ المنظمة ←" data-en="Save Organization →">حفظ المنظمة ←</button>
         </div>
       </div>
     </div>
@@ -256,13 +263,13 @@ textarea::placeholder{color:var(--text3);}
     <!-- Panel 2: Leader -->
     <div class="panel" id="panel2">
       <div class="panel-header">
-        <div class="panel-tag" data-ar="خطوة ٢ — بروفايلك الشخصي، يُحفظ تلقائياً" data-en="Step 2 — Your personal profile, auto-saved">خطوة ٢ — بروفايلك الشخصي، يُحفظ تلقائياً</div>
-        <div class="panel-title" data-ar="بروفايل القائد" data-en="Leader Profile">بروفايل القائد</div>
-        <div class="panel-desc" data-ar="بروفايلك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه." data-en="Your profile is tied to your org code — no need to re-enter it.">بروفايلك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه.</div>
+        <div class="panel-tag" data-ar="خطوة ٢ — بياناتك الشخصي، يُحفظ تلقائياً" data-en="Step 2 — Your personal profile, auto-saved">خطوة ٢ — بياناتك الشخصي، يُحفظ تلقائياً</div>
+        <div class="panel-title" data-ar="القائد" data-en="Leader Profile">القائد</div>
+        <div class="panel-desc" data-ar="بياناتك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه." data-en="Your profile is tied to your org code — no need to re-enter it.">بياناتك مرتبط بكود جهتك — لن تحتاج لإعادة ملئه.</div>
       </div>
 
       <div class="saved-bar" id="leaderSavedBar">
-        <div class="saved-bar-text">✓ <span data-ar="بروفايلك القيادي محفوظ" data-en="Your leader profile is saved">بروفايلك القيادي محفوظ</span></div>
+        <div class="saved-bar-text">✓ <span data-ar="بياناتك القيادي محفوظ" data-en="Your leader profile is saved">بياناتك القيادي محفوظ</span></div>
         <button class="edit-btn" onclick="editSection('leader')" data-ar="تعديل" data-en="Edit">تعديل</button>
       </div>
 
@@ -306,7 +313,7 @@ textarea::placeholder{color:var(--text3);}
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn-main" onclick="saveLeader()" data-ar="حفظ بروفايلي والمتابعة ←" data-en="Save & Continue →">حفظ بروفايلي والمتابعة ←</button>
+          <button class="btn-main" onclick="saveLeader()" data-ar="حفظ بياناتي والمتابعة ←" data-en="Save & Continue →">حفظ بياناتي والمتابعة ←</button>
           <button class="btn-ghost" onclick="goPanel(1)" data-ar="رجوع" data-en="Back">رجوع</button>
         </div>
       </div>
@@ -380,7 +387,7 @@ textarea::placeholder{color:var(--text3);}
     <div class="loading-view" id="loadingView">
       <div class="loader-ring"></div>
       <div style="font-size:1rem;font-weight:700;" data-ar="جارٍ تحليل السلوك التنظيمي المتوقع..." data-en="Analyzing expected behavior...">جارٍ تحليل السلوك التنظيمي المتوقع...</div>
-      <div style="font-size:0.83rem;color:var(--text2);max-width:320px;line-height:1.6;" data-ar="الذكاء الاصطناعي يدمج بروفايل جهتك مع القرار" data-en="AI is combining your org profile with the decision">الذكاء الاصطناعي يدمج بروفايل جهتك مع القرار</div>
+      <div style="font-size:0.83rem;color:var(--text2);max-width:320px;line-height:1.6;" data-ar="الذكاء الاصطناعي يدمج بيانات جهتك مع القرار" data-en="AI is combining your org profile with the decision">الذكاء الاصطناعي يدمج بيانات جهتك مع القرار</div>
     </div>
 
     <!-- Results -->
@@ -427,6 +434,24 @@ function submitCode(){
   document.getElementById('orgName').textContent=CODES[raw];
   document.getElementById('logoutBtn').classList.add('show');
   initApp();
+}
+
+function toggleSettings(){
+  const m=document.getElementById('settingsMenu');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+
+function editSection(sec){
+  document.getElementById('settingsMenu').style.display='none';
+  if(sec==='org'){
+    document.getElementById('orgForm').style.display='block';
+    document.getElementById('orgSavedBar').classList.remove('show');
+    goPanel(1);
+  } else {
+    document.getElementById('leaderForm').style.display='block';
+    document.getElementById('leaderSavedBar').classList.remove('show');
+    goPanel(2);
+  }
 }
 
 function logout(){
@@ -639,7 +664,7 @@ ${THEORIES}
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        model:"claude-haiku-4-5-20251001",
+        model:"claude-sonnet-4-5",
         max_tokens:6000,
         system:"You are an organizational behavior expert. Always respond with valid JSON only, no other text.",
         messages:[{role:"user",content:prompt}]
