@@ -640,7 +640,7 @@ ${THEORIES}
       },
       body:JSON.stringify({
         model:"claude-haiku-4-5-20251001",
-        max_tokens:3000,
+        max_tokens:6000,
         system:"You are an organizational behavior expert. Always respond with valid JSON only, no other text.",
         messages:[{role:"user",content:prompt}]
       })
@@ -653,11 +653,29 @@ ${THEORIES}
     if(!text)throw new Error('رد فارغ - مفاتيح البيانات: '+Object.keys(data).join(','));
     let parsed;
     try{
-      const match=text.match(/\{[\s\S]*\}/);
-      if(!match)throw new Error('لا يوجد JSON. النص: '+text.slice(0,200));
-      parsed=JSON.parse(match[0]);
-    }catch(je){throw new Error(je.message+' || النص: '+text.slice(0,150));}
-    console.log('parsed ok:', JSON.stringify(parsed).slice(0,200));
+      let j=text.replace(/```json/g,'').replace(/```/g,'').trim();
+      const s=j.indexOf('{');
+      if(s===-1)throw new Error('لا JSON');
+      j=j.slice(s);
+      let ob=0,ab=0,inStr=false,esc=false;
+      let last=j.length;
+      for(let i=0;i<j.length;i++){
+        const c=j[i];
+        if(esc){esc=false;continue;}
+        if(c==='\\'){esc=true;continue;}
+        if(c==='"'&&!esc){inStr=!inStr;continue;}
+        if(!inStr){
+          if(c==='{')ob++;
+          if(c==='}'){ob--;if(ob===0){last=i+1;break;}}
+          if(c==='[')ab++;
+          if(c===']')ab--;
+        }
+      }
+      j=j.slice(0,last);
+      while(ab>0){j+=']';ab--;}
+      while(ob>0){j+='}';ob--;}
+      parsed=JSON.parse(j);
+    }catch(je){throw new Error(je.message+' || '+text.slice(0,150));}
     renderResults(parsed,dec);
   }catch(e){
     document.getElementById('loadingView').classList.remove('show');
