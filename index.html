@@ -630,8 +630,6 @@ async function runAnalysis(){
 }
 
 function renderResults(data,dec){
-  try{
-  if(!data.behaviors||!data.summary){throw new Error('بيانات ناقصة: '+JSON.stringify(Object.keys(data)));}
   document.getElementById('loadingView').classList.remove('show');
   document.getElementById('decChip').textContent=dec.length>65?dec.slice(0,65)+'...':dec;
   document.getElementById('summarySection').innerHTML=`<div class="summary-card"><div class="sum-label">✦ المشهد السلوكي العام</div><div class="sum-text">${data.summary}</div></div>`;
@@ -666,8 +664,6 @@ function renderResults(data,dec){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-  }catch(e){document.getElementById("loadingView").classList.remove("show");document.getElementById("panel3").classList.add("active");document.getElementById("errorMsg").style.display="block";document.getElementById("errorMsg").textContent="خطأ في العرض: "+e.message;}
-}
 function newDecision(){
   document.getElementById('decisionText').value='';
   ['flex','timing','awareness'].forEach(n=>document.querySelectorAll(`input[name="${n}"]`).forEach(r=>r.checked=false));
