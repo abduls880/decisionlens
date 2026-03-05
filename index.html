@@ -603,22 +603,11 @@ ${L.flex[flex]},${L.timing[timing]},${L.awareness[awareness]},${gs}
     if(!text)throw new Error('رد فارغ');
     let parsed;
     try{
-      let jsonStr = text.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+      let jsonStr = text;
       const start = jsonStr.indexOf('{');
-      let end = jsonStr.lastIndexOf('}');
-      if(start === -1) throw new Error('لا يوجد JSON');
-      // If JSON is truncated, try to close it
-      if(end === -1 || end < start){
-        jsonStr = jsonStr.slice(start);
-        // Count unclosed brackets and close them
-        let opens = 0, arrOpens = 0;
-        for(const c of jsonStr){ if(c==='{')opens++; if(c==='}')opens--; if(c==='[')arrOpens++; if(c===']')arrOpens--; }
-        while(arrOpens > 0){ jsonStr += ']'; arrOpens--; }
-        while(opens > 0){ jsonStr += '}'; opens--; }
-      } else {
-        jsonStr = jsonStr.slice(start, end+1);
-      }
-      jsonStr = jsonStr.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      const end = jsonStr.lastIndexOf('}');
+      if(start === -1 || end === -1) throw new Error('لا يوجد JSON: '+text.slice(0,100));
+      jsonStr = jsonStr.slice(start, end+1);
       parsed=JSON.parse(jsonStr);
     }catch(je){throw new Error(je.message+' | '+text.slice(0,200));}
     renderResults(parsed,dec);
