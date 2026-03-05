@@ -589,7 +589,7 @@ ${L.flex[flex]},${L.timing[timing]},${L.awareness[awareness]},${gs}
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        model:(dec.length > 100 || ['راتب','رواتب','أجر','تعويض','فصل','إنهاء','إعادة هيكلة','اندماج','دمج','خصخصة','تقليص'].some(k=>dec.includes(k))) ? "claude-sonnet-4-5" : "claude-haiku-4-5-20251001",
+        model:"claude-sonnet-4-5",'رواتب','أجر','تعويض','فصل','إنهاء','إعادة هيكلة','اندماج','دمج','خصخصة','تقليص'].some(k=>dec.includes(k))) ? "claude-sonnet-4-5" : "claude-haiku-4-5-20251001",
         max_tokens:8000,
         system:"You are an organizational behavior expert. Always respond with valid JSON only. No markdown, no code blocks, no extra text. Start your response with { and end with }. Ensure all strings are properly escaped and the JSON is complete and valid.",
         messages:[{role:"user",content:prompt}]
