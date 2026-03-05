@@ -640,8 +640,8 @@ ${THEORIES}
       },
       body:JSON.stringify({
         model:"claude-haiku-4-5-20251001",
-        max_tokens:3000,
-        system:"You are an organizational behavior expert. Always respond with valid JSON only, no other text.",
+        max_tokens:4000,
+        system:"You are an organizational behavior expert. Always respond with valid JSON only. No markdown, no code blocks, no extra text. Start your response with { and end with }. Ensure all strings are properly escaped and the JSON is complete and valid.",
         messages:[{role:"user",content:prompt}]
       })
     });
@@ -653,9 +653,18 @@ ${THEORIES}
     if(!text)throw new Error('رد فارغ - مفاتيح البيانات: '+Object.keys(data).join(','));
     let parsed;
     try{
-      const match=text.match(/\{[\s\S]*\}/);
-      if(!match)throw new Error('لا يوجد JSON. النص: '+text.slice(0,200));
-      parsed=JSON.parse(match[0]);
+      // Extract JSON more robustly
+      let jsonStr = text;
+      // Remove markdown code blocks
+      jsonStr = jsonStr.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+      // Find the outermost JSON object
+      const start = jsonStr.indexOf('{');
+      const end = jsonStr.lastIndexOf('}');
+      if(start === -1 || end === -1) throw new Error('لا يوجد JSON في الرد');
+      jsonStr = jsonStr.slice(start, end+1);
+      // Fix common JSON issues - remove trailing commas
+      jsonStr = jsonStr.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      parsed=JSON.parse(jsonStr);
     }catch(je){throw new Error(je.message+' || النص: '+text.slice(0,150));}
     renderResults(parsed,dec);
   }catch(e){
