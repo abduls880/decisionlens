@@ -615,7 +615,30 @@ async function runAnalysis(){
 - Organizational Citizenship Behavior / OCB (Podsakoff et al.)
 `;
 
-  const prompt=`أنت خبير في Organizational Behavior وHRM. مهمتك تحليل السلوك التنظيمي المتوقع بناءً على نظريات علمية محددة.
+  const prompt = lang === 'en' ? `You are an expert in Organizational Behavior and HRM. Analyze expected employee behavior based on scientific theories. Return valid JSON only, starting with { and ending with }.
+
+== Organization ==
+Sector: ${L.sector[org?.sector]} | Size: ${L.orgSize[org?.orgSize]} | Age: ${L.orgAge[org?.orgAge]}
+Change acceptance: ${L.changeAccept[org?.changeAccept]} | Autonomy: ${L.autonomy[org?.autonomy]}
+
+== Leader ==
+Style: ${L.lstyle[ldr?.lstyle]} | Reports: ${L.reports[ldr?.reports]}
+Trust: ${L.trust[ldr?.trust]} | Team seniority: ${L.seniority[ldr?.seniority]}
+
+== Decision ==
+${dec}
+Flexibility: ${L.flex[flex]} | Timing: ${L.timing[timing]} | Awareness: ${L.awareness[awareness]}
+Affected groups: ${gs}
+
+== Available Theories (choose 3-4) ==
+Group 1 - Change: Kotter 8-Step, Kübler-Ross, Lewin, Structural Inertia, Org Imprinting
+Group 2 - Motivation: Maslow, Herzberg, Vroom, Intrinsic vs Extrinsic
+Group 3 - Justice: Org Justice, Social Exchange, Psychological Contract Breach
+Group 4 - Power: French & Raven, Situational Leadership, Social Hierarchy
+Group 5 - Culture: Competing Values, Dynamic Capabilities
+Group 6 - Group: Team Diversity, OCB
+
+{"summary":"one sentence","theories":[{"name":"theory","group":"Group 1","relevance":"high","insight":"short application"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"Immediate Reactions","color":"#4f7fff","points":["point1","point2"]},{"id":"informal","icon":"💬","title":"Informal Communication","color":"#7b5ea7","points":["point1","point2"]},{"id":"compliance","icon":"🔄","title":"Compliance Pattern","color":"#e8a838","points":["point1","point2"]},{"id":"resistance","icon":"🌊","title":"Forms of Resistance","color":"#e85454","points":["point1","point2"]},{"id":"groups","icon":"👥","title":"Group Behavior","color":"#2ecc8a","points":["point1","point2"]},{"id":"timeline","icon":"📅","title":"Behavior Timeline","color":"#4fc3f7","points":["Phase 1","Phase 2","Phase 3"]}],"risks":[{"label":"Resistance","level":65},{"label":"Rumors","level":50},{"label":"Productivity","level":40},{"label":"Trust","level":55}],"questions":["q1","q2","q3"]}` : `أنت خبير في Organizational Behavior وHRM. حلل السلوك المتوقع وأرجع JSON صالح فقط يبدأ بـ { وينتهي بـ }.
 
 == بيانات المنظمة ==
 القطاع: ${L.sector[org?.sector]} | الحجم: ${L.orgSize[org?.orgSize]} | العمر: ${L.orgAge[org?.orgAge]}
@@ -630,17 +653,15 @@ ${dec}
 قابلية التعديل: ${L.flex[flex]} | التوقيت: ${L.timing[timing]} | وعي الموظفين: ${L.awareness[awareness]}
 الفئات المتأثرة: ${gs}
 
-== مكتبة النظريات المتاحة ==
-${THEORIES}
+== النظريات المتاحة (اختر 3-4) ==
+مجموعة 1 - التغيير: Kotter 8-Step, Kübler-Ross, Lewin, Structural Inertia, Org Imprinting
+مجموعة 2 - الدوافع: Maslow, Herzberg, Vroom, Intrinsic vs Extrinsic
+مجموعة 3 - العدالة: Org Justice, Social Exchange, Psychological Contract Breach
+مجموعة 4 - القوة: French & Raven, Situational Leadership, Social Hierarchy
+مجموعة 5 - الثقافة: Competing Values, Dynamic Capabilities
+مجموعة 6 - الجماعي: Team Diversity, OCB
 
-== التعليمات ==
-1. اختر من 3 إلى 6 نظريات الأنسب لهذا القرار تحديداً من المكتبة أعلاه — لا تطبق كلها
-2. إذا رأيت نظرية أخرى من OB أو HRM تناسب القرار بشكل خاص وليست في المكتبة، أضفها
-3. لكل نظرية مختارة: اشرح كيف تتجلى في هذا القرار وما السلوك المتوقع بناءً عليها
-4. أرجع JSON فقط بدون أي نص خارجه
-
-الشكل المطلوب:
-{"summary":"جملتان تصفان المشهد السلوكي العام مع الإشارة للنظريات الأبرز","theories":[{"name":"اسم النظرية","group":"مجموعة 1","relevance":"high/medium","insight":"كيف تتجلى هذه النظرية في هذا القرار تحديداً وما السلوك المتوقع بناءً عليها (جملتان)"},{"name":"نظرية إضافية مناسبة","group":"إضافة","relevance":"high","insight":"تبرير إضافتها وتطبيقها على القرار"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة مبنية على نظرية","نقطة2","نقطة3"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2","نقطة3"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2","نقطة3"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2","نقطة3"]},{"id":"groups","icon":"👥","title":"سلوك الفئات المتأثرة","color":"#2ecc8a","points":["نقطة1","نقطة2","نقطة3"]},{"id":"timeline","icon":"📅","title":"تطور السلوك عبر الزمن","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"questions":["سؤال تأملي 1","سؤال 2","سؤال 3","سؤال 4"]}`;
+{"summary":"جملة واحدة","theories":[{"name":"نظرية","group":"مجموعة 1","relevance":"high","insight":"تطبيق قصير"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة1","نقطة2"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2"]},{"id":"groups","icon":"👥","title":"سلوك الفئات","color":"#2ecc8a","points":["نقطة1","نقطة2"]},{"id":"timeline","icon":"📅","title":"تطور السلوك","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"questions":["سؤال1","سؤال2","سؤال3"]}`
 
   try{
     const res=await fetch("https://decisionlens-api.a-aloraini88.workers.dev",{
