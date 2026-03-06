@@ -778,6 +778,8 @@ function setLang(l){
   document.getElementById('lhint').innerHTML=t.hint;
   document.getElementById('logoutBtn').textContent=t.logout;
   document.getElementById('codeInput').placeholder=l==='ar'?'مثال: ORG-ALPHA':'e.g. ORG-ALPHA';
+  const decTxt = document.getElementById('decisionText');
+  if(decTxt) decTxt.placeholder = l==='ar'?'...اكتب قرارك هنا بكل تفاصيله':'Describe your decision in detail...';
   renderGroups();
 }
 </script>
