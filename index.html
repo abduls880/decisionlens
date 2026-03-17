@@ -142,6 +142,33 @@ textarea::placeholder{color:var(--text3);}
 .nav-bar{display:flex;gap:0.7rem;margin-bottom:1.5rem;}
 .nav-btn{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:0.5rem 1.1rem;cursor:pointer;font-size:0.85rem;color:var(--text2);font-weight:600;transition:all 0.2s;}
 .nav-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+/* Recommendations */
+.rec-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1rem;}
+.rec-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.8rem;}
+.rec-list{display:flex;flex-direction:column;gap:0.6rem;}
+.rec-item{display:flex;align-items:flex-start;gap:0.8rem;font-size:0.88rem;color:var(--text2);line-height:1.5;}
+.rec-num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;}
+/* Productivity */
+.prod-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1rem;}
+.prod-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.8rem;}
+.prod-dir{font-size:1rem;font-weight:700;margin-bottom:0.5rem;}
+.prod-dir.down{color:#e85454;}
+.prod-dir.up{color:#2ecc8a;}
+.prod-reason{font-size:0.85rem;color:var(--text2);margin-bottom:0.5rem;line-height:1.6;}
+.prod-recovery{font-size:0.85rem;color:var(--gold);line-height:1.6;background:rgba(232,168,56,0.08);padding:0.7rem 1rem;border-radius:8px;border-left:3px solid var(--gold);}
+/* Chat */
+.chat-sec{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1rem;}
+.chat-hd{font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:0.3rem;}
+.chat-sub{font-size:0.8rem;color:var(--text3);margin-bottom:1rem;}
+.chat-msgs{display:flex;flex-direction:column;gap:0.7rem;margin-bottom:1rem;max-height:300px;overflow-y:auto;}
+.chat-msg{padding:0.7rem 1rem;border-radius:10px;font-size:0.87rem;line-height:1.5;max-width:90%;}
+.chat-msg.user{background:var(--accent);color:#fff;align-self:flex-end;}
+.chat-msg.ai{background:var(--surface2);color:var(--text);align-self:flex-start;border:1px solid var(--border2);}
+.chat-input-row{display:flex;gap:0.5rem;}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:0.6rem 1rem;color:var(--text);font-size:0.87rem;}
+.chat-send{background:var(--accent);border:none;border-radius:8px;padding:0.6rem 1rem;color:#fff;cursor:pointer;font-size:1rem;}
+.chat-send:disabled{opacity:0.4;cursor:not-allowed;}
+.chat-count{font-size:0.75rem;color:var(--text3);margin-top:0.5rem;text-align:center;}
 @media(max-width:580px){.theory-grid{grid-template-columns:1fr;}}
 @media(max-width:580px){.behavior-grid{grid-template-columns:1fr;}.panel-title{font-size:1.3rem;}.progress-track::before{display:none;}.prog-label{display:none;}}
 </style>
@@ -404,9 +431,33 @@ textarea::placeholder{color:var(--text3);}
 
 <script>
 let lang='ar', orgCode=null, groups=[];
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbzh-RCnscQxOJ8VAT7A-KnlixATRgm1KfrEcZIQxPMgQnkvgEeLw3xRgJy_IZ-bcdP9/exec';
+
+async function saveToSheets(type, values){
+  try{
+    await fetch(SHEETS_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type, orgCode, values})
+    });
+  }catch(e){console.log('Sheets save error:', e);}
+}
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbzh-RCnscQxOJ8VAT7A-KnlixATRgm1KfrEcZIQxPMgQnkvgEeLw3xRgJy_IZ-bcdP9/exec';
+
+async function saveToSheets(type, values){
+  try{
+    await fetch(SHEETS_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type, orgCode, values})
+    });
+  }catch(e){console.log('Sheets save error:', e);}
+}
 
 // Storage — keyed per org code so data is fully isolated
 function sk(k){return `dl_${orgCode}_${k}`;}
@@ -505,8 +556,10 @@ function saveOrg(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
+  saveToSheets('org',[L.sector[d.sector],L.orgSize[d.orgSize],L.orgAge[d.orgAge],L.changeAccept[d.changeAccept],L.autonomy[d.autonomy]]);
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
+  saveToSheets('org', [L.sector[d.sector], L.orgSize[d.orgSize], L.orgAge[d.orgAge], L.changeAccept[d.changeAccept], L.autonomy[d.autonomy]]);
   goPanel(2);
 }
 
@@ -519,8 +572,10 @@ function saveLeader(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('leader',d);
+  saveToSheets('leader',[L.lstyle[d.lstyle],L.reports[d.reports],L.trust[d.trust],L.seniority[d.seniority]]);
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
+  saveToSheets('leader', [L.lstyle[d.lstyle], L.reports[d.reports], L.trust[d.trust], L.seniority[d.seniority]]);
   goPanel(3);
 }
 
@@ -638,7 +693,7 @@ Group 4 - Power: French & Raven, Situational Leadership, Social Hierarchy
 Group 5 - Culture: Competing Values, Dynamic Capabilities
 Group 6 - Group: Team Diversity, OCB
 
-{"summary":"one sentence","theories":[{"name":"theory","group":"Group 1","relevance":"high","insight":"short application"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"Immediate Reactions","color":"#4f7fff","points":["point1","point2"]},{"id":"informal","icon":"💬","title":"Informal Communication","color":"#7b5ea7","points":["point1","point2"]},{"id":"compliance","icon":"🔄","title":"Compliance Pattern","color":"#e8a838","points":["point1","point2"]},{"id":"resistance","icon":"🌊","title":"Forms of Resistance","color":"#e85454","points":["point1","point2"]},{"id":"groups","icon":"👥","title":"Group Behavior","color":"#2ecc8a","points":["point1","point2"]},{"id":"timeline","icon":"📅","title":"Behavior Timeline","color":"#4fc3f7","points":["Phase 1","Phase 2","Phase 3"]}],"risks":[{"label":"Resistance","level":65},{"label":"Rumors","level":50},{"label":"Productivity","level":40},{"label":"Trust","level":55}],"questions":["q1","q2","q3"]}` : `أنت خبير في Organizational Behavior وHRM. حلل السلوك المتوقع وأرجع JSON صالح فقط يبدأ بـ { وينتهي بـ }.
+{"summary":"one sentence","theories":[{"name":"theory","group":"Group 1","relevance":"high","insight":"short application"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"Immediate Reactions","color":"#4f7fff","points":["point1","point2"]},{"id":"informal","icon":"💬","title":"Informal Communication","color":"#7b5ea7","points":["point1","point2"]},{"id":"compliance","icon":"🔄","title":"Compliance Pattern","color":"#e8a838","points":["point1","point2"]},{"id":"resistance","icon":"🌊","title":"Forms of Resistance","color":"#e85454","points":["point1","point2"]},{"id":"groups","icon":"👥","title":"Group Behavior","color":"#2ecc8a","points":["point1","point2"]},{"id":"timeline","icon":"📅","title":"Behavior Timeline","color":"#4fc3f7","points":["Phase 1","Phase 2","Phase 3"]}],"risks":[{"label":"Resistance","level":65},{"label":"Rumors","level":50},{"label":"Productivity","level":40},{"label":"Trust","level":55}],"recommendations":["Practical recommendation 1","Recommendation 2","Recommendation 3"],"productivity":{"direction":"down","reason":"Impact reason on productivity","recovery":"How to address the decline if decision is unavoidable"},"questions":["q1","q2","q3"]}` : `أنت خبير في Organizational Behavior وHRM. حلل السلوك المتوقع وأرجع JSON صالح فقط يبدأ بـ { وينتهي بـ }.
 
 == بيانات المنظمة ==
 القطاع: ${L.sector[org?.sector]} | الحجم: ${L.orgSize[org?.orgSize]} | العمر: ${L.orgAge[org?.orgAge]}
@@ -661,7 +716,7 @@ ${dec}
 مجموعة 5 - الثقافة: Competing Values, Dynamic Capabilities
 مجموعة 6 - الجماعي: Team Diversity, OCB
 
-{"summary":"جملة واحدة","theories":[{"name":"نظرية","group":"مجموعة 1","relevance":"high","insight":"تطبيق قصير"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة1","نقطة2"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2"]},{"id":"groups","icon":"👥","title":"سلوك الفئات","color":"#2ecc8a","points":["نقطة1","نقطة2"]},{"id":"timeline","icon":"📅","title":"تطور السلوك","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"questions":["سؤال1","سؤال2","سؤال3"]}`
+{"summary":"جملة واحدة","theories":[{"name":"نظرية","group":"مجموعة 1","relevance":"high","insight":"تطبيق قصير"}],"behaviors":[{"id":"immediate","icon":"⚡","title":"ردود الفعل الفورية","color":"#4f7fff","points":["نقطة1","نقطة2"]},{"id":"informal","icon":"💬","title":"التواصل غير الرسمي","color":"#7b5ea7","points":["نقطة1","نقطة2"]},{"id":"compliance","icon":"🔄","title":"نمط الامتثال","color":"#e8a838","points":["نقطة1","نقطة2"]},{"id":"resistance","icon":"🌊","title":"أشكال المقاومة","color":"#e85454","points":["نقطة1","نقطة2"]},{"id":"groups","icon":"👥","title":"سلوك الفئات","color":"#2ecc8a","points":["نقطة1","نقطة2"]},{"id":"timeline","icon":"📅","title":"تطور السلوك","color":"#4fc3f7","points":["المرحلة الأولى","المرحلة الثانية","المرحلة الثالثة"]}],"risks":[{"label":"مقاومة التغيير","level":65},{"label":"انتشار الشائعات","level":50},{"label":"انخفاض الإنتاجية","level":40},{"label":"تراجع الثقة","level":55}],"recommendations":["توصية عملية للقائد 1","توصية 2","توصية 3"],"productivity":{"direction":"down","reason":"سبب التأثير على الإنتاجية","recovery":"كيف يعالج الانخفاض لو القرار لابد منه"},"questions":["سؤال1","سؤال2","سؤال3"]}`
 
   try{
     const res=await fetch("https://decisionlens-api.a-aloraini88.workers.dev",{
@@ -748,9 +803,106 @@ function renderResults(data,dec){
   document.getElementById('behaviorGrid').innerHTML=data.behaviors.map(b=>`<div class="bcard"><div class="bcard-stripe" style="background:linear-gradient(90deg,${b.color},transparent)"></div><div class="bcard-icon">${b.icon}</div><div class="bcard-title">${b.title}</div><div class="bcard-content"><ul>${b.points.map(p=>`<li>${p}</li>`).join('')}</ul></div></div>`).join('');
   document.getElementById('riskSection').innerHTML=`<div class="risk-wrap"><div class="risk-hd">📊 مؤشرات السلوك المتوقع</div>${data.risks.map((r,i)=>`<div class="risk-row"><div class="risk-lbl">${r.label}</div><div class="risk-track"><div class="risk-fill" id="rf${i}" style="background:${r.level>70?'var(--red)':r.level>45?'var(--gold)':'var(--green)'}"></div></div><div class="risk-val">${r.level}%</div></div>`).join('')}</div>`;
   setTimeout(()=>data.risks.forEach((r,i)=>{const el=document.getElementById('rf'+i);if(el)el.style.width=r.level+'%';}),100);
-  document.getElementById('questionsSection').innerHTML=`<div class="q-sec"><div class="q-hd">💭 أسئلة تستحق التأمل قبل التنفيذ</div><div>${data.questions.map(q=>`<span class="q-pill">◦ ${q}</span>`).join('')}</div></div>`;
+  // Recommendations
+  if(data.recommendations && data.recommendations.length){
+    const recHtml = `<div class="rec-sec">
+      <div class="rec-hd">🎯 ${lang==='en'?'Practical Recommendations':'توصيات عملية للقائد'}</div>
+      <div class="rec-list">${data.recommendations.map((r,i)=>`<div class="rec-item"><span class="rec-num">${i+1}</span><span>${r}</span></div>`).join('')}</div>
+    </div>`;
+    document.getElementById('questionsSection').innerHTML = recHtml;
+  }
+
+  // Productivity
+  if(data.productivity){
+    const p = data.productivity;
+    const isDown = p.direction==='down';
+    const prodHtml = `<div class="prod-sec">
+      <div class="prod-hd">📈 ${lang==='en'?'Expected Productivity':'الإنتاجية المتوقعة'}</div>
+      <div class="prod-dir ${isDown?'down':'up'}">${isDown?(lang==='en'?'📉 Expected Decline':'📉 انخفاض متوقع'):(lang==='en'?'📈 Expected Increase':'📈 ارتفاع متوقع')}</div>
+      <div class="prod-reason">${p.reason}</div>
+      ${isDown?`<div class="prod-recovery"><strong>💡 ${lang==='en'?'Recovery Plan:':'خطة المعالجة:'}</strong> ${p.recovery}</div>`:''}
+    </div>`;
+    document.getElementById('questionsSection').innerHTML += prodHtml;
+  }
+
+  // Reflective questions
+  if(data.questions && data.questions.length){
+    const qHtml = `<div class="q-sec"><div class="q-hd">💭 ${lang==='en'?'Questions Worth Reflecting On':'أسئلة تستحق التأمل'}</div><div>${data.questions.map(q=>`<span class="q-pill">◦ ${q}</span>`).join('')}</div></div>`;
+    document.getElementById('questionsSection').innerHTML += qHtml;
+  }
+
+  // Chat section
+  document.getElementById('questionsSection').innerHTML += `<div class="chat-sec" id="chatSec">
+    <div class="chat-hd">🤝 ${lang==='en'?'Ask Your Advisor':'اسأل مستشارك'}</div>
+    <div class="chat-sub">${lang==='en'?'Ask up to 3 questions about this decision':'اسأل حتى ٣ أسئلة عن هذا القرار'}</div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="${lang==='en'?'Your question...':'سؤالك...'}" />
+      <button class="chat-send" onclick="sendChat()" id="chatSendBtn">➤</button>
+    </div>
+    <div class="chat-count" id="chatCount">${lang==='en'?'0 of 3 questions used':'٠ من ٣ أسئلة'}</div>
+  </div>`;
+
+  window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
+  saveToSheets('decision', [dec, L.flex[flex], L.timing[timing], L.awareness[awareness], gs, data.summary]);
+  saveToSheets('decision',[dec,L.flex[flex],L.timing[timing],L.awareness[awareness],gs,data.summary]);
+  window.chatCount = 0;
+
   document.getElementById('resultsView').classList.add('show');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function sendChat(){
+  if(window.chatCount >= 3) return;
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if(!q) return;
+  
+  window.chatCount++;
+  input.value = '';
+  document.getElementById('chatCount').textContent = lang==='en'?`${window.chatCount} of 3 questions used`:`${window.chatCount} من ٣ أسئلة`;
+  
+  const msgs = document.getElementById('chatMsgs');
+  msgs.innerHTML += `<div class="chat-msg user">${q}</div>`;
+  msgs.innerHTML += `<div class="chat-msg ai" id="aiMsg${window.chatCount}">⏳ ${lang==='en'?'Thinking...':'جاري التفكير...'}</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  if(window.chatCount >= 3){
+    document.getElementById('chatSendBtn').disabled = true;
+    document.getElementById('chatInput').disabled = true;
+  }
+
+  const ctx = window.currentAnalysis;
+  const sysPrompt = lang==='en'
+    ? 'You are an organizational behavior advisor. Answer concisely and practically based on the analysis provided. Max 3 sentences.'
+    : 'أنت مستشار سلوك تنظيمي. أجب بإيجاز وعملياً بناءً على التحليل المقدم. ٣ جمل كحد أقصى.';
+  
+  const userMsg = lang==='en'
+    ? `Decision: ${ctx.dec}
+Analysis summary: ${ctx.data.summary}
+Question: ${q}`
+    : `القرار: ${ctx.dec}
+ملخص التحليل: ${ctx.data.summary}
+السؤال: ${q}`;
+
+  try{
+    const res = await fetch('https://decisionlens-api.a-aloraini88.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:300,
+        system: sysPrompt,
+        messages:[{role:'user',content:userMsg}]
+      })
+    });
+    const data = await res.json();
+    const answer = (data.content||[]).map(i=>i.text||'').join('').trim();
+    document.getElementById('aiMsg'+window.chatCount).textContent = answer;
+  }catch(e){
+    document.getElementById('aiMsg'+window.chatCount).textContent = lang==='en'?'Error, try again':'حدث خطأ، حاول مجدداً';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 function newDecision(){
