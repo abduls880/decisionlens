@@ -434,13 +434,7 @@ let lang='ar', orgCode=null, groups=[];
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbz_hNLCn8I8UY0CJmq107so9d1x1cIQ86DVSMaQNEUkAo_qy30gUYn66FyN8pcoXuCNKQ/exec';
-async function saveToSheets(type,values){
-  try{
-    const url = SHEETS_URL + '?type='+encodeURIComponent(type)+'&orgCode='+encodeURIComponent(orgCode)+'&values='+encodeURIComponent(JSON.stringify(values));
-    await fetch(url, {method:'GET', mode:'no-cors'});
-  }catch(e){console.log('sheets error:',e);}
-}
+
 
 // Storage — keyed per org code so data is fully isolated
 function sk(k){return `dl_${orgCode}_${k}`;}
@@ -539,10 +533,9 @@ function saveOrg(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
-  saveToSheets('org',[L.sector[d.sector],L.orgSize[d.orgSize],L.orgAge[d.orgAge],L.changeAccept[d.changeAccept],L.autonomy[d.autonomy]]);
+  
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
-  saveToSheets('org', [L.sector[d.sector], L.orgSize[d.orgSize], L.orgAge[d.orgAge], L.changeAccept[d.changeAccept], L.autonomy[d.autonomy]]);
   goPanel(2);
 }
 
@@ -555,10 +548,9 @@ function saveLeader(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('leader',d);
-  saveToSheets('leader',[L.lstyle[d.lstyle],L.reports[d.reports],L.trust[d.trust],L.seniority[d.seniority]]);
+  
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
-  saveToSheets('leader', [L.lstyle[d.lstyle], L.reports[d.reports], L.trust[d.trust], L.seniority[d.seniority]]);
   goPanel(3);
 }
 
@@ -827,8 +819,7 @@ function renderResults(data,dec){
   </div>`;
 
   window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
-  saveToSheets('decision', [dec, L.flex[flex], L.timing[timing], L.awareness[awareness], gs, data.summary]);
-  saveToSheets('decision',[dec,L.flex[flex],L.timing[timing],L.awareness[awareness],gs,data.summary]);
+  
   window.chatCount = 0;
 
   document.getElementById('resultsView').classList.add('show');
