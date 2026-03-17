@@ -435,7 +435,12 @@ let lang='ar', orgCode=null, groups=[];
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbz_hNLCn8I8UY0CJmq107so9d1x1cIQ86DVSMaQNEUkAo_qy30gUYn66FyN8pcoXuCNKQ/exec';
-async function saveToSheets(type,values){try{await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,orgCode,values})});}catch(e){}}
+async function saveToSheets(type,values){
+  try{
+    const url = SHEETS_URL + '?type='+encodeURIComponent(type)+'&orgCode='+encodeURIComponent(orgCode)+'&values='+encodeURIComponent(JSON.stringify(values));
+    await fetch(url, {method:'GET', mode:'no-cors'});
+  }catch(e){console.log('sheets error:',e);}
+}
 
 // Storage — keyed per org code so data is fully isolated
 function sk(k){return `dl_${orgCode}_${k}`;}
