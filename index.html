@@ -431,33 +431,9 @@ textarea::placeholder{color:var(--text3);}
 
 <script>
 let lang='ar', orgCode=null, groups=[];
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbzh-RCnscQxOJ8VAT7A-KnlixATRgm1KfrEcZIQxPMgQnkvgEeLw3xRgJy_IZ-bcdP9/exec';
-
-async function saveToSheets(type, values){
-  try{
-    await fetch(SHEETS_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type, orgCode, values})
-    });
-  }catch(e){console.log('Sheets save error:', e);}
-}
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbzh-RCnscQxOJ8VAT7A-KnlixATRgm1KfrEcZIQxPMgQnkvgEeLw3xRgJy_IZ-bcdP9/exec';
-
-async function saveToSheets(type, values){
-  try{
-    await fetch(SHEETS_URL, {
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type, orgCode, values})
-    });
-  }catch(e){console.log('Sheets save error:', e);}
-}
 
 // Storage — keyed per org code so data is fully isolated
 function sk(k){return `dl_${orgCode}_${k}`;}
@@ -556,10 +532,8 @@ function saveOrg(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
-  saveToSheets('org',[L.sector[d.sector],L.orgSize[d.orgSize],L.orgAge[d.orgAge],L.changeAccept[d.changeAccept],L.autonomy[d.autonomy]]);
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
-  saveToSheets('org', [L.sector[d.sector], L.orgSize[d.orgSize], L.orgAge[d.orgAge], L.changeAccept[d.changeAccept], L.autonomy[d.autonomy]]);
   goPanel(2);
 }
 
@@ -572,10 +546,8 @@ function saveLeader(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('leader',d);
-  saveToSheets('leader',[L.lstyle[d.lstyle],L.reports[d.reports],L.trust[d.trust],L.seniority[d.seniority]]);
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
-  saveToSheets('leader', [L.lstyle[d.lstyle], L.reports[d.reports], L.trust[d.trust], L.seniority[d.seniority]]);
   goPanel(3);
 }
 
@@ -844,8 +816,6 @@ function renderResults(data,dec){
   </div>`;
 
   window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
-  saveToSheets('decision', [dec, L.flex[flex], L.timing[timing], L.awareness[awareness], gs, data.summary]);
-  saveToSheets('decision',[dec,L.flex[flex],L.timing[timing],L.awareness[awareness],gs,data.summary]);
   window.chatCount = 0;
 
   document.getElementById('resultsView').classList.add('show');
