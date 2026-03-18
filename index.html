@@ -759,7 +759,7 @@ function renderResults(data,dec){
     const relLabel = r => lang==='en'?(r==='high'?'High Relevance':r==='medium'?'Medium Relevance':'Relevant'):(r==='high'?'عالية الصلة':r==='medium'?'متوسطة الصلة':'ذات صلة');
     const groupColor = g => g.includes('1')||g.includes('التغيير')?'#4f7fff':g.includes('2')||g.includes('الدوافع')?'#2ecc8a':g.includes('3')||g.includes('العدالة')?'#e8a838':g.includes('4')||g.includes('القوة')?'#e85454':g.includes('5')||g.includes('الثقافة')?'#7b5ea7':'#4fc3f7';
     document.getElementById('summarySection').innerHTML += `<div class="theory-section">
-      <div class="theory-hd">${lang==='en'?'🔬 Applied Theories on This Decision':'🔬 النظريات المُطبَّقة على هذا القرار'}:'🔬 النظريات المُطبَّقة على هذا القرار'}</div>
+      <div class="theory-hd">${lang==='en'?'🔬 Applied Theories on This Decision':'🔬 النظريات المُطبَّقة على هذا القرار'}</div>
       <div class="theory-grid">${data.theories.map(t=>`
         <div class="theory-card">
           <div class="theory-card-top">
@@ -776,7 +776,7 @@ function renderResults(data,dec){
   }
 
   document.getElementById('behaviorGrid').innerHTML=data.behaviors.map(b=>`<div class="bcard"><div class="bcard-stripe" style="background:linear-gradient(90deg,${b.color},transparent)"></div><div class="bcard-icon">${b.icon}</div><div class="bcard-title">${b.title}</div><div class="bcard-content"><ul>${b.points.map(p=>`<li>${p}</li>`).join('')}</ul></div></div>`).join('');
-  document.getElementById('riskSection').innerHTML=`<div class="risk-wrap"><div class="risk-hd">📊 مؤشرات السلوك المتوقع</div>${data.risks.map((r,i)=>`<div class="risk-row"><div class="risk-lbl">${r.label}</div><div class="risk-track"><div class="risk-fill" id="rf${i}" style="background:${r.level>70?'var(--red)':r.level>45?'var(--gold)':'var(--green)'}"></div></div><div class="risk-val">${r.level}%</div></div>`).join('')}</div>`;
+  document.getElementById('riskSection').innerHTML=`<div class="risk-wrap"><div class="risk-hd">${lang==='en'?'📊 Expected Behavior Indicators':'📊 مؤشرات السلوك المتوقع'}</div>${data.risks.map((r,i)=>`<div class="risk-row"><div class="risk-lbl">${r.label}</div><div class="risk-track"><div class="risk-fill" id="rf${i}" style="background:${r.level>70?'var(--red)':r.level>45?'var(--gold)':'var(--green)'}"></div></div><div class="risk-val">${r.level}%</div></div>`).join('')}</div>`;
   setTimeout(()=>data.risks.forEach((r,i)=>{const el=document.getElementById('rf'+i);if(el)el.style.width=r.level+'%';}),100);
   // Recommendations
   if(data.recommendations && data.recommendations.length){
