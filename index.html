@@ -433,7 +433,7 @@ textarea::placeholder{color:var(--text3);}
 let lang='ar', orgCode=null, groups=[];
 
 // Valid codes — in production replace with server validation
-const CODES={'ORG-ALPHA':'جهة ألفا','ORG-BETA':'جهة بيتا','ORG-GAMMA':'جهة جاما'};
+const CODES={'ORG-ALPHA':{ar:'جهة ألفا',en:'Org Alpha'},'ORG-BETA':{ar:'جهة بيتا',en:'Org Beta'},'ORG-GAMMA':{ar:'جهة جاما',en:'Org Gamma'}};
 
 
 // Storage — keyed per org code so data is fully isolated
@@ -453,7 +453,7 @@ function submitCode(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
   document.getElementById('orgBadge').classList.add('show');
-  document.getElementById('orgName').textContent=CODES[raw];
+  document.getElementById('orgName').textContent=lang==='en'?CODES[raw].en:CODES[raw].ar;
   document.getElementById('logoutBtn').classList.add('show');
   initApp();
 }
@@ -751,15 +751,15 @@ ${dec}
 function renderResults(data,dec){
   document.getElementById('loadingView').classList.remove('show');
   document.getElementById('decChip').textContent=dec.length>65?dec.slice(0,65)+'...':dec;
-  document.getElementById('summarySection').innerHTML=`<div class="summary-card"><div class="sum-label">✦ المشهد السلوكي العام</div><div class="sum-text">${data.summary}</div></div>`;
+  document.getElementById('summarySection').innerHTML=`<div class="summary-card"><div class="sum-label">${lang==='en'?'✦ General Behavioral Landscape':lang==='en'?'✦ General Behavioral Landscape':'✦ المشهد السلوكي العام'}</div><div class="sum-text">${data.summary}</div></div>`;
 
   // Theories section
   if(data.theories && data.theories.length){
     const relColor = r => r==='high'?'var(--accent)':r==='medium'?'var(--gold)':'var(--text3)';
-    const relLabel = r => r==='high'?'عالية الصلة':r==='medium'?'متوسطة الصلة':'ذات صلة';
+    const relLabel = r => r==='high'?'${lang==='en'?'High relevance':'عالية الصلة'}':r==='medium'?'${lang==='en'?'Medium relevance':'متوسطة الصلة'}':'${lang==='en'?'Relevant':'ذات صلة'}';
     const groupColor = g => g.includes('1')||g.includes('التغيير')?'#4f7fff':g.includes('2')||g.includes('الدوافع')?'#2ecc8a':g.includes('3')||g.includes('العدالة')?'#e8a838':g.includes('4')||g.includes('القوة')?'#e85454':g.includes('5')||g.includes('الثقافة')?'#7b5ea7':'#4fc3f7';
     document.getElementById('summarySection').innerHTML += `<div class="theory-section">
-      <div class="theory-hd">🔬 النظريات المُطبَّقة على هذا القرار</div>
+      <div class="theory-hd">${lang==='en'?'🔬 Applied Theories':lang==='en'?'🔬 Applied Theories on This Decision':'🔬 النظريات المُطبَّقة على هذا القرار'}</div>
       <div class="theory-grid">${data.theories.map(t=>`
         <div class="theory-card">
           <div class="theory-card-top">
@@ -767,7 +767,7 @@ function renderResults(data,dec){
             <span class="theory-rel" style="color:${relColor(t.relevance)}">${relLabel(t.relevance)}</span>
           </div>
           <div class="theory-group" style="color:${groupColor(t.group||'')}">
-            ${t.group==='إضافة'?'➕ نظرية إضافية':'📚 '+t.group}
+            ${t.group==='إضافة'?'${lang==='en'?'➕ Additional Theory':'➕ نظرية إضافية'}':'📚 '+t.group}
           </div>
           <div class="theory-insight">${t.insight}</div>
         </div>`).join('')}
@@ -793,7 +793,7 @@ function renderResults(data,dec){
     const isDown = p.direction==='down';
     const prodHtml = `<div class="prod-sec">
       <div class="prod-hd">📈 ${lang==='en'?'Expected Productivity':'الإنتاجية المتوقعة'}</div>
-      <div class="prod-dir ${isDown?'down':'up'}">${isDown?(lang==='en'?'📉 Expected Decline':'📉 انخفاض متوقع'):(lang==='en'?'📈 Expected Increase':'📈 ارتفاع متوقع')}</div>
+      <div class="prod-dir ${isDown?'down':'up'}">${isDown?(lang==='en'?'📉 Expected Decline':'📉 ${lang==='en'?'Expected Decline':'انخفاض متوقع'}'):(lang==='en'?'📈 Expected Increase':'📈 ${lang==='en'?'Expected Increase':'ارتفاع متوقع'}')}</div>
       <div class="prod-reason">${p.reason}</div>
       ${isDown?`<div class="prod-recovery"><strong>💡 ${lang==='en'?'Recovery Plan:':'خطة المعالجة:'}</strong> ${p.recovery}</div>`:''}
     </div>`;
@@ -809,10 +809,10 @@ function renderResults(data,dec){
   // Chat section
   document.getElementById('questionsSection').innerHTML += `<div class="chat-sec" id="chatSec">
     <div class="chat-hd">🤝 ${lang==='en'?'Ask Your Advisor':'اسأل مستشارك'}</div>
-    <div class="chat-sub">${lang==='en'?'Ask up to 3 questions about this decision':'اسأل حتى ٣ أسئلة عن هذا القرار'}</div>
+    <div class="chat-sub">${lang==='en'?'Ask up to 3 questions about this decision':'${lang==='en'?'Ask up to 3 questions about this decision':'اسأل حتى ٣ أسئلة عن هذا القرار'}'}</div>
     <div class="chat-msgs" id="chatMsgs"></div>
     <div class="chat-input-row">
-      <input class="chat-input" id="chatInput" placeholder="${lang==='en'?'Your question...':'سؤالك...'}" />
+      <input class="chat-input" id="chatInput" placeholder="${lang==='en'?'Your question...':lang==='en'?'Your question...':'سؤالك...'}" />
       <button class="chat-send" onclick="sendChat()" id="chatSendBtn">➤</button>
     </div>
     <div class="chat-count" id="chatCount">${lang==='en'?'0 of 3 questions used':'٠ من ٣ أسئلة'}</div>
@@ -834,7 +834,7 @@ async function sendChat(){
   
   window.chatCount++;
   input.value = '';
-  document.getElementById('chatCount').textContent = lang==='en'?`${window.chatCount} of 3 questions used`:`${window.chatCount} من ٣ أسئلة`;
+  document.getElementById('chatCount').textContent = lang==='en'?`${window.chatCount} of 3 questions used`:lang==='en'?`${window.chatCount} of 3 questions used`:`${window.chatCount} من ٣ أسئلة`;
   
   const msgs = document.getElementById('chatMsgs');
   msgs.innerHTML += `<div class="chat-msg user">${q}</div>`;
@@ -874,7 +874,7 @@ Question: ${q}`
     const answer = (data.content||[]).map(i=>i.text||'').join('').trim();
     document.getElementById('aiMsg'+window.chatCount).textContent = answer;
   }catch(e){
-    document.getElementById('aiMsg'+window.chatCount).textContent = lang==='en'?'Error, try again':'حدث خطأ، حاول مجدداً';
+    document.getElementById('aiMsg'+window.chatCount).textContent = lang==='en'?'Error, try again':lang==='en'?'Error, try again':'حدث خطأ، حاول مجدداً';
   }
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -904,6 +904,7 @@ function setLang(l){
   document.getElementById('lhint').innerHTML=t.hint;
   document.getElementById('logoutBtn').textContent=t.logout;
   document.getElementById('codeInput').placeholder=l==='ar'?'مثال: ORG-ALPHA':'e.g. ORG-ALPHA';
+  if(orgCode&&CODES[orgCode]) document.getElementById('orgName').textContent=l==='en'?CODES[orgCode].en:CODES[orgCode].ar;
   const decTxt = document.getElementById('decisionText');
   if(decTxt) decTxt.placeholder = l==='ar'?'...اكتب قرارك هنا بكل تفاصيله':'Describe your decision in detail...';
   renderGroups();
