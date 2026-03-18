@@ -594,7 +594,22 @@ async function runAnalysis(){
   document.getElementById('loadingView').classList.add('show');
   for(let i=1;i<=4;i++){const el=document.getElementById('ps'+i);if(!el)continue;el.className='prog-step';if(i<4)el.classList.add('done');if(i===4)el.classList.add('active');}
 
-  const L={
+  const LL = lang==='en' ? {
+    sector:{gov:'Government',private:'Private'},
+    orgSize:{small:'<100',medium:'100–350',large:'>350'},
+    orgAge:{new:'New (<5yr)',mid:'5–15yr',mature:'Mature (>15yr)'},
+    changeAccept:{positive:'Positive',sometimes:'Sometimes resistant',hard:'Always resistant'},
+    autonomy:{full:'Fully independent',partial:'Partially',none:'Not independent'},
+    lstyle:{directive:'Directive',participative:'Participative',delegative:'Delegative'},
+    reports:{few:'5 or less',mid:'5–15',many:'15+'},
+    trust:{high:'High',medium:'Medium',low:'Low'},
+    seniority:{new:'New (<3yr)',mid:'Mid-level',senior:'Senior (>7yr)'},
+    flex:{flexible:'Flexible',partial:'Partially',fixed:'Fixed'},
+    timing:{immediate:'Immediate',months:'Within months',gradual:'Gradual'},
+    awareness:{secret:'Secret',leaked:'Leaked',announced:'Announced'},
+    impact:{low:'Low',med:'Medium',high:'High'},
+    orgSize2:{small:'Small',medium:'Medium',large:'Large'}
+  } : {
     sector:{gov:'حكومي',private:'خاص'},
     orgSize:{small:'أقل من ١٠٠',medium:'١٠٠–٣٥٠',large:'أكثر من ٣٥٠'},
     orgAge:{new:'ناشئة (<٥ سنوات)',mid:'٥–١٥ سنة',mature:'راسخة (>١٥)'},
@@ -607,8 +622,10 @@ async function runAnalysis(){
     flex:{flexible:'قابل للتعديل',partial:'جزئياً',fixed:'غير قابل'},
     timing:{immediate:'فوري',months:'خلال أشهر',gradual:'تدريجي'},
     awareness:{secret:'سري',leaked:'تسريبات',announced:'معلن'},
-    impact:{low:'منخفض',med:'متوسط',high:'عالٍ'}
+    impact:{low:'منخفض',med:'متوسط',high:'عالٍ'},
+    orgSize2:{small:'صغيرة',medium:'متوسطة',large:'كبيرة'}
   };
+  const L = LL;
 
   const gs=fg.length?fg.map(g=>`- ${g.name}: تأثير ${L.impact[g.impact]||'غير محدد'}`).join('\n'):'لم تُحدد فئات';
 
@@ -677,6 +694,7 @@ Group 6 - Group: Team Diversity, OCB
 == بيانات القائد ==
 الأسلوب: ${L.lstyle[ldr?.lstyle]} | المرؤوسون: ${L.reports[ldr?.reports]}
 الثقة: ${L.trust[ldr?.trust]} | خبرة الفريق: ${L.seniority[ldr?.seniority]}
+قابلية التعديل: ${L.flex[flex]} | التوقيت: ${L.timing[timing]} | وعي الموظفين: ${L.awareness[awareness]}
 
 == القرار ==
 ${dec}
