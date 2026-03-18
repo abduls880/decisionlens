@@ -764,6 +764,7 @@ ${dec}
       while(ob>0){j+='}';ob--;}
       parsed=JSON.parse(j);
     }catch(je){throw new Error(je.message+' || '+text.slice(0,150));}
+    window._decCtx={flex,timing,awareness,gs};
     renderResults(parsed,dec);
   }catch(e){
     document.getElementById('loadingView').classList.remove('show');
@@ -846,7 +847,8 @@ function renderResults(data,dec){
   </div>`;
 
   window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
-  saveToSheets('decision',[dec,flex,timing,awareness,gs,data.summary]);
+  const _ctx=window._decCtx||{};
+  saveToSheets('decision',[dec,_ctx.flex,_ctx.timing,_ctx.awareness,_ctx.gs,data.summary]);
   
   window.chatCount = 0;
 
