@@ -434,6 +434,13 @@ let lang='ar', orgCode=null, groups=[];
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':{ar:'جهة ألفا',en:'Org Alpha'},'ORG-BETA':{ar:'جهة بيتا',en:'Org Beta'},'ORG-GAMMA':{ar:'جهة جاما',en:'Org Gamma'}};
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbwXmmbC0rA4yNmOJb-1uV2mhMQzHyzveznFInxAP1toCdHU1xwYo8oMBbE1He5FwX05/exec';
+async function saveToSheets(type,values){
+  try{
+    const url=SHEETS_URL+'?type='+encodeURIComponent(type)+'&orgCode='+encodeURIComponent(orgCode)+'&values='+encodeURIComponent(JSON.stringify(values));
+    await fetch(url,{method:'GET',mode:'no-cors'});
+  }catch(e){}
+}
 
 
 // Storage — keyed per org code so data is fully isolated
@@ -533,6 +540,7 @@ function saveOrg(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
+  saveToSheets('org',[d.sector,d.orgSize,d.orgAge,d.changeAccept,d.autonomy]);
   
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
@@ -548,6 +556,7 @@ function saveLeader(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('leader',d);
+  saveToSheets('leader',[d.lstyle,d.reports,d.trust,d.seniority]);
   
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
@@ -837,6 +846,7 @@ function renderResults(data,dec){
   </div>`;
 
   window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
+  saveToSheets('decision',[dec,flex,timing,awareness,gs,data.summary]);
   
   window.chatCount = 0;
 
