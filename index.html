@@ -540,7 +540,8 @@ function saveOrg(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
-  saveToSheets('org',[d.sector,d.orgSize,d.orgAge,d.changeAccept,d.autonomy]);
+  const Lar={sector:{gov:'حكومي',private:'خاص'},orgSize:{small:'أقل من ١٠٠',medium:'١٠٠–٣٥٠',large:'أكثر من ٣٥٠'},orgAge:{new:'ناشئة',mid:'٥–١٥ سنة',mature:'راسخة'},changeAccept:{positive:'إيجابي',sometimes:'أحياناً مقاومة',hard:'مقاومة دائمة'},autonomy:{full:'مستقلة',partial:'جزئياً',none:'غير مستقلة'}};
+  saveToSheets('org',[Lar.sector[d.sector],Lar.orgSize[d.orgSize],Lar.orgAge[d.orgAge],Lar.changeAccept[d.changeAccept],Lar.autonomy[d.autonomy]]);
   
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
@@ -556,7 +557,8 @@ function saveLeader(){
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('leader',d);
-  saveToSheets('leader',[d.lstyle,d.reports,d.trust,d.seniority]);
+  const Lar2={lstyle:{directive:'توجيهي',participative:'تشاركي',delegative:'تفويضي'},reports:{few:'٥ فأقل',mid:'٥–١٥',many:'١٥ فأكثر'},trust:{high:'عالٍ',medium:'متوسط',low:'منخفض'},seniority:{new:'جدد',mid:'متوسطو الخبرة',senior:'قدامى'}};
+  saveToSheets('leader',[Lar2.lstyle[d.lstyle],Lar2.reports[d.reports],Lar2.trust[d.trust],Lar2.seniority[d.seniority]]);
   
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
