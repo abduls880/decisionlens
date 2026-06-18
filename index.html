@@ -219,7 +219,7 @@ textarea::placeholder{color:var(--text3);}
         <div class="login-sub" data-ar="كودك الشخصي يميّزك بشكل مضمون عن باقي القادة في جهتك، حتى لو تشاركتم بالاسم" data-en="Your personal code uniquely identifies you among other leaders in your org, even if you share the same name">كودك الشخصي يميّزك بشكل مضمون عن باقي القادة في جهتك، حتى لو تشاركتم بالاسم</div>
         <input class="code-input" id="leaderCodeInput" type="text" placeholder="LDR-XXXXXX" maxlength="14"
           onkeydown="if(event.key==='Enter')submitLeaderCode()">
-        <div class="login-error" id="leaderErr" data-ar="الرجاء كتابة كودك" data-en="Please enter your code">الرجاء كتابة كودك</div>
+        <div class="login-error" id="leaderErr" data-ar="الكود غير صحيح — إذا أول مرة استخدم زر «أنشئ كود جديد»" data-en="Invalid code — if this is your first time, use the «Create new code» button">الكود غير صحيح — إذا أول مرة استخدم زر «أنشئ كود جديد»</div>
         <button class="btn-main" onclick="submitLeaderCode()" style="width:100%;justify-content:center">
           <span data-ar="دخول" data-en="Enter">دخول</span>
         </button>
@@ -545,7 +545,7 @@ function copyGeneratedCode(){
 function submitLeaderCode(){
   const raw=document.getElementById('leaderCodeInput').value.trim().toUpperCase();
   const err=document.getElementById('leaderErr');
-  if(!raw){err.style.display='block';return;}
+  if(!/^LDR-[A-Z0-9]{4,10}$/.test(raw)){err.style.display='block';return;}
   err.style.display='none';
   const savedName=localStorage.getItem(`dl_${orgCode}_ldrname_${raw}`);
   leaderId=raw;
