@@ -179,6 +179,7 @@ textarea::placeholder{color:var(--text3);}
   <div class="logo"><div class="logo-dot"></div>Decision<span>Lens</span></div>
   <div class="nav-right">
     <div class="org-badge" id="orgBadge"><div class="org-dot"></div><span id="orgName"></span></div>
+    <button class="logout-btn" id="switchLeaderBtn" onclick="switchLeader()" data-ar="تبديل القائد" data-en="Switch leader">تبديل القائد</button>
     <button class="logout-btn" id="logoutBtn" onclick="logout()">خروج</button>
     <div class="lang-toggle">
       <button class="lang-btn active" id="lAr" onclick="setLang('ar')">ع</button>
@@ -203,6 +204,48 @@ textarea::placeholder{color:var(--text3);}
       <div class="login-hint" id="lhint">
         للتجربة: كود جهة أ = <code>ORG-ALPHA</code> &nbsp;|&nbsp; كود جهة ب = <code>ORG-BETA</code>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADER IDENTIFY -->
+<div id="leaderScreen" style="display:none">
+  <div class="login-wrap">
+    <div class="login-card">
+
+      <div id="leaderLoginView">
+        <div class="login-icon">🔑</div>
+        <div class="login-title" data-ar="أدخل كود القائد" data-en="Enter your leader code">أدخل كود القائد</div>
+        <div class="login-sub" data-ar="كودك الشخصي يميّزك بشكل مضمون عن باقي القادة في جهتك، حتى لو تشاركتم بالاسم" data-en="Your personal code uniquely identifies you among other leaders in your org, even if you share the same name">كودك الشخصي يميّزك بشكل مضمون عن باقي القادة في جهتك، حتى لو تشاركتم بالاسم</div>
+        <input class="code-input" id="leaderCodeInput" type="text" placeholder="LDR-XXXXXX" maxlength="14"
+          onkeydown="if(event.key==='Enter')submitLeaderCode()">
+        <div class="login-error" id="leaderErr" data-ar="الرجاء كتابة كودك" data-en="Please enter your code">الرجاء كتابة كودك</div>
+        <button class="btn-main" onclick="submitLeaderCode()" style="width:100%;justify-content:center">
+          <span data-ar="دخول" data-en="Enter">دخول</span>
+        </button>
+        <div class="login-hint">
+          <span data-ar="أول مرة تستخدم الأداة؟" data-en="First time using the tool?">أول مرة تستخدم الأداة؟</span>
+          <button class="edit-btn" onclick="showNewLeaderView()" style="margin-right:0.5rem" data-ar="أنشئ كود جديد" data-en="Create new code">أنشئ كود جديد</button>
+        </div>
+        <button class="btn-ghost" onclick="backToOrgLogin()" style="width:100%;justify-content:center;margin-top:0.8rem">
+          <span data-ar="← جهة مختلفة" data-en="← Different org">← جهة مختلفة</span>
+        </button>
+      </div>
+
+      <div id="leaderNewView" style="display:none">
+        <div class="login-icon">✨</div>
+        <div class="login-title" data-ar="كودك الجديد" data-en="Your new code">كودك الجديد</div>
+        <div class="login-sub" data-ar="احفظ هذا الكود في مكان آمن — تحتاجه كل مرة تدخل فيها بدل الاسم" data-en="Save this code somewhere safe — you'll need it every time you log in">احفظ هذا الكود في مكان آمن — تحتاجه كل مرة تدخل فيها بدل الاسم</div>
+        <div class="code-input" id="generatedCodeDisplay" style="cursor:pointer;color:var(--gold);" onclick="copyGeneratedCode()">LDR-000000</div>
+        <input class="code-input" id="newLeaderNameInput" type="text" placeholder="اسمك (اختياري، يظهر لك فقط)" maxlength="40" style="text-align:center;letter-spacing:normal;font-weight:600;margin-top:0.8rem;">
+        <button class="btn-main" onclick="confirmNewLeader()" style="width:100%;justify-content:center">
+          <span data-ar="حفظت الكود، ابدأ ←" data-en="Saved the code, start →">حفظت الكود، ابدأ ←</span>
+        </button>
+        <button class="btn-ghost" onclick="showLoginLeaderView()" style="width:100%;justify-content:center;margin-top:0.8rem">
+          <span data-ar="← لدي كود مسبقاً" data-en="← I already have a code">← لدي كود مسبقاً</span>
+        </button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -430,7 +473,7 @@ textarea::placeholder{color:var(--text3);}
 </div>
 
 <script>
-let lang='ar', orgCode=null, groups=[];
+let lang='ar', orgCode=null, leaderId=null, leaderName=null, groups=[];
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':{ar:'جهة ألفا',en:'Org Alpha'},'ORG-BETA':{ar:'جهة بيتا',en:'Org Beta'},'ORG-GAMMA':{ar:'جهة جاما',en:'Org Gamma'}};
@@ -448,6 +491,17 @@ function sk(k){return `dl_${orgCode}_${k}`;}
 function sv(k,v){try{localStorage.setItem(sk(k),JSON.stringify(v));}catch(e){}}
 function ld(k){try{const v=localStorage.getItem(sk(k));return v?JSON.parse(v):null;}catch(e){return null;}}
 
+// Leader-specific storage — isolates each leader's profile/decisions within the same org
+function lsk(k){return `dl_${orgCode}_ldr_${leaderId}_${k}`;}
+function svL(k,v){try{localStorage.setItem(lsk(k),JSON.stringify(v));}catch(e){}}
+function ldL(k){try{const v=localStorage.getItem(lsk(k));return v?JSON.parse(v):null;}catch(e){return null;}}
+function generateLeaderCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusing chars like O/0, I/1
+  let code='';
+  for(let i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return 'LDR-'+code;
+}
+
 function submitCode(){
   const raw=document.getElementById('codeInput').value.trim().toUpperCase();
   const err=document.getElementById('loginErr');
@@ -458,11 +512,74 @@ function submitCode(){
   }
   orgCode=raw;
   document.getElementById('loginScreen').style.display='none';
+  document.getElementById('leaderScreen').style.display='block';
+  showLoginLeaderView();
+  document.getElementById('leaderErr').style.display='none';
+  const remembered=localStorage.getItem(`dl_${orgCode}_lastLeaderCode`);
+  document.getElementById('leaderCodeInput').value=remembered||'';
+}
+
+function backToOrgLogin(){
+  orgCode=null;
+  document.getElementById('leaderScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
+}
+
+function showLoginLeaderView(){
+  document.getElementById('leaderNewView').style.display='none';
+  document.getElementById('leaderLoginView').style.display='block';
+}
+
+function showNewLeaderView(){
+  document.getElementById('leaderLoginView').style.display='none';
+  document.getElementById('leaderNewView').style.display='block';
+  document.getElementById('generatedCodeDisplay').textContent=generateLeaderCode();
+  document.getElementById('newLeaderNameInput').value='';
+}
+
+function copyGeneratedCode(){
+  const txt=document.getElementById('generatedCodeDisplay').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
+}
+
+function submitLeaderCode(){
+  const raw=document.getElementById('leaderCodeInput').value.trim().toUpperCase();
+  const err=document.getElementById('leaderErr');
+  if(!raw){err.style.display='block';return;}
+  err.style.display='none';
+  const savedName=localStorage.getItem(`dl_${orgCode}_ldrname_${raw}`);
+  leaderId=raw;
+  leaderName=savedName||raw;
+  localStorage.setItem(`dl_${orgCode}_lastLeaderCode`,raw);
+  enterMainApp();
+}
+
+function confirmNewLeader(){
+  const code=document.getElementById('generatedCodeDisplay').textContent;
+  const name=document.getElementById('newLeaderNameInput').value.trim();
+  leaderId=code;
+  leaderName=name||code;
+  localStorage.setItem(`dl_${orgCode}_ldrname_${code}`,leaderName);
+  localStorage.setItem(`dl_${orgCode}_lastLeaderCode`,code);
+  enterMainApp();
+}
+
+function enterMainApp(){
+  document.getElementById('leaderScreen').style.display='none';
   document.getElementById('mainApp').style.display='block';
   document.getElementById('orgBadge').classList.add('show');
-  document.getElementById('orgName').textContent=lang==='en'?CODES[raw].en:CODES[raw].ar;
+  document.getElementById('orgName').textContent=(lang==='en'?CODES[orgCode].en:CODES[orgCode].ar)+' · '+leaderName;
   document.getElementById('logoutBtn').classList.add('show');
+  document.getElementById('switchLeaderBtn').classList.add('show');
   initApp();
+}
+
+function switchLeader(){
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('leaderScreen').style.display='block';
+  showLoginLeaderView();
+  document.getElementById('leaderCodeInput').value=leaderId||'';
+  document.getElementById('leaderErr').style.display='none';
 }
 
 function toggleSettings(){
@@ -484,15 +601,19 @@ function editSection(sec){
 
 function logout(){
   orgCode=null;
+  leaderId=null;
+  leaderName=null;
   document.getElementById('loginScreen').style.display='block';
+  document.getElementById('leaderScreen').style.display='none';
   document.getElementById('mainApp').style.display='none';
   document.getElementById('orgBadge').classList.remove('show');
   document.getElementById('logoutBtn').classList.remove('show');
+  document.getElementById('switchLeaderBtn').classList.remove('show');
   document.getElementById('codeInput').value='';
 }
 
 function initApp(){
-  const org=ld('org'), ldr=ld('leader');
+  const org=ld('org'), ldr=ldL('leader');
   groups=[];addGroup('','');addGroup('','');
   if(org){
     fillRadios(org,['sector','orgSize','orgAge','changeAccept','autonomy']);
@@ -541,7 +662,7 @@ function saveOrg(){
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
   sv('org',d);
   const Lar={sector:{gov:'حكومي',private:'خاص'},orgSize:{small:'أقل من ١٠٠',medium:'١٠٠–٣٥٠',large:'أكثر من ٣٥٠'},orgAge:{new:'ناشئة',mid:'٥–١٥ سنة',mature:'راسخة'},changeAccept:{positive:'إيجابي',sometimes:'أحياناً مقاومة',hard:'مقاومة دائمة'},autonomy:{full:'مستقلة',partial:'جزئياً',none:'غير مستقلة'}};
-  saveToSheets('org',[Lar.sector[d.sector],Lar.orgSize[d.orgSize],Lar.orgAge[d.orgAge],Lar.changeAccept[d.changeAccept],Lar.autonomy[d.autonomy]]);
+  saveToSheets('org',[leaderId,leaderName,Lar.sector[d.sector],Lar.orgSize[d.orgSize],Lar.orgAge[d.orgAge],Lar.changeAccept[d.changeAccept],Lar.autonomy[d.autonomy]]);
   
   document.getElementById('orgSavedBar').classList.add('show');
   document.getElementById('orgForm').style.display='none';
@@ -556,9 +677,9 @@ function saveLeader(){
     seniority:document.querySelector('input[name="seniority"]:checked')?.value
   };
   if(Object.values(d).some(v=>!v)){alert(lang==='ar'?'الرجاء إكمال جميع الحقول':'Please complete all fields');return;}
-  sv('leader',d);
+  svL('leader',d);
   const Lar2={lstyle:{directive:'توجيهي',participative:'تشاركي',delegative:'تفويضي'},reports:{few:'٥ فأقل',mid:'٥–١٥',many:'١٥ فأكثر'},trust:{high:'عالٍ',medium:'متوسط',low:'منخفض'},seniority:{new:'جدد',mid:'متوسطو الخبرة',senior:'قدامى'}};
-  saveToSheets('leader',[Lar2.lstyle[d.lstyle],Lar2.reports[d.reports],Lar2.trust[d.trust],Lar2.seniority[d.seniority]]);
+  saveToSheets('leader',[leaderId,leaderName,Lar2.lstyle[d.lstyle],Lar2.reports[d.reports],Lar2.trust[d.trust],Lar2.seniority[d.seniority]]);
   
   document.getElementById('leaderSavedBar').classList.add('show');
   document.getElementById('leaderForm').style.display='none';
@@ -850,7 +971,7 @@ function renderResults(data,dec){
 
   window.currentAnalysis = {org: ld('org'), ldr: ld('leader'), dec, data};
   const _ctx=window._decCtx||{};
-  saveToSheets('decision',[dec,_ctx.flex,_ctx.timing,_ctx.awareness,_ctx.gs,data.summary]);
+  saveToSheets('decision',[leaderId,leaderName,dec,_ctx.flex,_ctx.timing,_ctx.awareness,_ctx.gs,data.summary]);
   
   window.chatCount = 0;
 
@@ -936,7 +1057,8 @@ function setLang(l){
   document.getElementById('lhint').innerHTML=t.hint;
   document.getElementById('logoutBtn').textContent=t.logout;
   document.getElementById('codeInput').placeholder=l==='ar'?'مثال: ORG-ALPHA':'e.g. ORG-ALPHA';
-  if(orgCode&&CODES[orgCode]) document.getElementById('orgName').textContent=l==='en'?CODES[orgCode].en:CODES[orgCode].ar;
+  document.getElementById('newLeaderNameInput').placeholder=l==='ar'?'اسمك (اختياري، يظهر لك فقط)':'Your name (visible to you only, optional)';
+  if(orgCode&&CODES[orgCode]) document.getElementById('orgName').textContent=(l==='en'?CODES[orgCode].en:CODES[orgCode].ar)+(leaderName?(' · '+leaderName):'');
   const decTxt = document.getElementById('decisionText');
   if(decTxt) decTxt.placeholder = l==='ar'?'...اكتب قرارك هنا بكل تفاصيله':'Describe your decision in detail...';
   renderGroups();
