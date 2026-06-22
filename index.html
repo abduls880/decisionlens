@@ -477,11 +477,15 @@ let lang='ar', orgCode=null, leaderId=null, leaderName=null, groups=[];
 
 // Valid codes — in production replace with server validation
 const CODES={'ORG-ALPHA':{ar:'جهة ألفا',en:'Org Alpha'},'ORG-BETA':{ar:'جهة بيتا',en:'Org Beta'},'ORG-GAMMA':{ar:'جهة جاما',en:'Org Gamma'}};
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbzj9vrlOGBDfyPDmS_92qsnYa_bJAtkr7kgrTUnn32bXnEtERMqSxyCN2lPfTnqMp0n/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbzxA4i4v-4rCXC67i-ZxEVmGHYIcXuEVeRc0ngRqhjnva8M6R1io41y3UMtkIVgUofg6Q/exec';
 async function saveToSheets(type,values){
   try{
     const url=SHEETS_URL+'?type='+encodeURIComponent(type)+'&orgCode='+encodeURIComponent(orgCode)+'&values='+encodeURIComponent(JSON.stringify(values));
-    await fetch(url,{method:'GET',mode:'no-cors'});
+    // استخدام img pixel لتجاوز مشكلة CORS
+    const img = new Image();
+    img.src = url;
+    // أيضاً fetch كنسخة احتياطية
+    fetch(url,{method:'GET',mode:'no-cors'}).catch(()=>{});
   }catch(e){}
 }
 
