@@ -480,12 +480,12 @@ const CODES={'ORG-ALPHA':{ar:'جهة ألفا',en:'Org Alpha'},'ORG-BETA':{ar:'�
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbzxA4i4v-4rCXC67i-ZxEVmGHYIcXuEVeRc0ngRqhjnva8M6R1io41y3UMtkIVgUofg6Q/exec';
 async function saveToSheets(type,values){
   try{
-    const url=SHEETS_URL+'?type='+encodeURIComponent(type)+'&orgCode='+encodeURIComponent(orgCode)+'&values='+encodeURIComponent(JSON.stringify(values));
-    // استخدام img pixel لتجاوز مشكلة CORS
-    const img = new Image();
-    img.src = url;
-    // أيضاً fetch كنسخة احتياطية
-    fetch(url,{method:'GET',mode:'no-cors'}).catch(()=>{});
+    fetch(SHEETS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({type:type,orgCode:orgCode,values:values})
+    }).catch(()=>{});
   }catch(e){}
 }
 
